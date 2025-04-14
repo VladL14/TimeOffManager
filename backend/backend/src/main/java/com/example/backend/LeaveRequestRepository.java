@@ -1,4 +1,6 @@
 package com.example.backend;
 
-public interface LeaveRequestRepository {
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface LeaveRequestRepository extends JpaRepository<LeaveRequest, Long> {
 }

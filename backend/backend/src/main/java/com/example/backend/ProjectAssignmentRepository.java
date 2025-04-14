@@ -1,4 +1,6 @@
 package com.example.backend;
 
-public interface ProjectAssignmentRepository {
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface ProjectAssignmentRepository extends JpaRepository<ProjectAssignment, Long> {
 }
