@@ -178,7 +178,7 @@
 </style>
 
 <main class="main">
-  <div class="content">
+  <!-- <div class="content">
     <div class="left-side">
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -321,7 +321,14 @@
         </a>
       </div>
     </div>
+  </div> -->
+  <div style="text-align: center; margin-top: 50px;">
+    <h1>Angular + Spring Boot Integration Test</h1>
+    <button (click)="getHelloMessage()">Apasă aici să vorbim cu backend-ul</button>
+  
+    <p *ngIf="messageFromBackend">{{ messageFromBackend }}</p>
   </div>
+  
 </main>
 
 <!-- * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * -->
