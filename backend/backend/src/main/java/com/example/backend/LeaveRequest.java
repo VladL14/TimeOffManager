@@ -18,6 +18,24 @@ public class LeaveRequest {
     private Date endDate;
     private Integer approvedBy;
 
+    public void setStatus(String status) {this.status = status;}
+    public String getStatus() {return this.status;}
+
+    public void setUserId(String userId) {this.userId = Integer.parseInt(userId);}
+    public int getUserId() {return this.userId;}
+
+    public void setLeaveTypeId(int leaveTypeId) {this.leaveTypeId = leaveTypeId;}
+    public int getLeaveTypeId() {return this.leaveTypeId;}
+
+    public void setStartDate(Date startDate) {this.startDate = startDate;}
+    public Date getStartDate() {return this.startDate;}
+
+    public void setEndDate(Date endDate) {this.endDate = endDate;}
+    public Date getEndDate() {return this.endDate;}
+
+    public void setApprovedBy(Integer approvedBy) {this.approvedBy = approvedBy;}
+    public Integer getApprovedBy() {return this.approvedBy;}
+
     public void setNotes(String notes) {
         this.notes = notes;
     }

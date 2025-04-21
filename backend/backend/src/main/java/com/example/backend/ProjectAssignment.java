@@ -11,13 +11,10 @@ public class ProjectAssignment {
     private int userId;
     private int projectId;
 
-    public void setId(int id)
-    {
-        this.id = id;
-    }
+    public void setUserId(int userId) {this.userId = userId;}
+    public int getUserId() {return userId;}
 
-    public int getId()
-    {
-        return id;
-    }
+    public void setProjectId(int projectId) {this.projectId = projectId;}
+    public int getProjectId() {return projectId;}
+
 }
