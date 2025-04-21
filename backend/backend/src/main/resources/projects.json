@@ -1,0 +1,12 @@
+[
+  {
+    "name": "Project Alpha",
+    "description": "First major project",
+    "managerId": 3
+  },
+  {
+    "name": "Project Beta",
+    "description": "Internal tool development",
+    "managerId": 3
+  }
+]

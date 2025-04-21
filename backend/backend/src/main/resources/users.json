@@ -1,0 +1,20 @@
+[
+  {
+    "name": "Ana Popescu",
+    "email": "ana@email.com",
+    "role": "Admin",
+    "isActive": true
+  },
+  {
+    "name": "Ion Ionescu",
+    "email": "ion@email.com",
+    "role": "User",
+    "isActive": true
+  },
+  {
+    "name": "Maria Georgescu",
+    "email": "maria@email.com",
+    "role": "Manager",
+    "isActive": true
+  }
+]
