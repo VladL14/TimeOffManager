@@ -21,4 +21,10 @@ public class LeaveType {
     {
         return name;
     }
+
+    public void setBalanceDays(int balanceDays){this.balanceDays = balanceDays;}
+    public int getBalanceDays(){return this.balanceDays;}
+
+    public void setUserId(int userId){this.userId = userId;}
+    public int getUserId(){return this.userId;}
 }

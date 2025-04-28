@@ -19,4 +19,11 @@ public class Project {
     public String getName() {
         return name;
     }
+
+    public void setDescription(String description) { this.description = description; }
+
+    public String getDescription() { return description; }
+
+    public void setManagerId(int managerId) { this.managerId = managerId; }
+    public int getManagerId() { return managerId; }
 }
