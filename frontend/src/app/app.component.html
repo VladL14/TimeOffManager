@@ -2,60 +2,56 @@
   <h1 style="margin-bottom: 30px;">TimeOff Manager</h1>
 
   <div style="margin-bottom: 20px;">
-    <button (click)="loadUsers()">Vezi Utilizatori</button>
+    <!-- <button (click)="loadUsers()">Vezi Utilizatori</button>
     <button (click)="loadProjects()">Vezi Proiecte</button>
-    <button (click)="loadLeaveTypes()">Vezi Tipuri Concediu</button>
+    <button (click)="loadLeaveTypes()">Vezi Tipuri Concediu</button> -->
     <button (click)="loadLeaveRequests()">Vezi Cereri Concediu</button>
-    <button (click)="loadAssignments()">Vezi Atribuiri Proiecte</button>
+    <!-- <button (click)="loadAssignments()">Vezi Atribuiri Proiecte</button> -->
   </div>
 
-  <!-- Utilizatori -->
-  <div *ngIf="users.length > 0">
-    <h2> Utilizatori</h2>
-    <ul style="list-style: none; padding: 0;">
-      <li *ngFor="let user of users">
-        Nume utilizator: {{ user.name }} <br/>
-      </li>
-    </ul>
+  <!-- Creare cerere concediu -->
+  <div style="margin: 20px;">
+    <h2>Adaugă Cerere Concediu</h2>
+    <form (submit)="createLeaveRequest()">
+      <input type="number" placeholder="User ID" [(ngModel)]="newLeaveRequest.userId" name="userId" required>
+      <input type="number" placeholder="Leave Type ID" [(ngModel)]="newLeaveRequest.leaveTypeId" name="leaveTypeId" required>
+      <input type="date" placeholder="Start Date" [(ngModel)]="newLeaveRequest.startDate" name="startDate" required>
+      <input type="date" placeholder="End Date" [(ngModel)]="newLeaveRequest.endDate" name="endDate" required>
+      <input type="text" placeholder="Notes" [(ngModel)]="newLeaveRequest.notes" name="notes">
+      <button type="submit">Creează Cerere</button>
+    </form>
   </div>
-
-  <!-- Proiecte -->
-  <div *ngIf="projects.length > 0">
-    <h2>Proiecte</h2>
-    <ul style="list-style: none; padding: 0;">
-      <li *ngFor="let project of projects">
-        Nume Proiect: {{ project.name }} <br/>
-      </li>
-    </ul>
+  <div style="margin: 20px;">
+    <h2>Caută Cereri după User ID</h2>
+    <input type="number" placeholder="Introdu User ID" [(ngModel)]="userIdToSearch" name="userIdToSearch">
+    <button (click)="searchLeaveRequestsByUser()">Caută</button>
   </div>
-
-  <!-- Tipuri Concediu -->
-  <div *ngIf="leaveTypes.length > 0">
-    <h2>Tipuri Concediu</h2>
-    <ul style="list-style: none; padding: 0;">
-      <li *ngFor="let type of leaveTypes">
-        Tip Concediu: {{ type.name }} <br/>
-      </li>
-    </ul>
-  </div>
-
-  <!-- Cereri Concediu -->
+  
+  <!-- Lista cereri concediu -->
   <div *ngIf="leaveRequests.length > 0">
     <h2>Cereri Concediu</h2>
     <ul style="list-style: none; padding: 0;">
       <li *ngFor="let request of leaveRequests">
+        ID: {{ request.id }} - User ID: {{ request.userId }} <br/>
+        Tip Concediu ID: {{ request.leaveTypeId }} <br/>
+        {{ request.startDate }} ➔ {{ request.endDate }}<br/>
         Motiv: {{ request.notes }} <br/>
+        Status: {{ request.status }} <br/>
+        <button (click)="selectRequestForEdit(request)">Editează</button>
+        <hr/>
       </li>
     </ul>
   </div>
 
-  <!-- Atribuiri Proiecte -->
-  <div *ngIf="assignments.length > 0">
-    <h2> Atribuiri Proiecte</h2>
-    <ul style="list-style: none; padding: 0;">
-      <li *ngFor="let assignment of assignments">
-         ID: {{ assignment.id }} <br/>
-      </li>
-    </ul>
+  <!-- Editare cerere concediu -->
+  <div *ngIf="selectedRequest">
+    <h2>Editează Cerere</h2>
+    <form (submit)="updateLeaveRequest()">
+      <input type="date" [(ngModel)]="selectedRequest.startDate" name="editStartDate" required>
+      <input type="date" [(ngModel)]="selectedRequest.endDate" name="editEndDate" required>
+      <input type="text" [(ngModel)]="selectedRequest.notes" name="editNotes">
+      <button type="submit">Salvează modificările</button>
+      <button type="button" (click)="cancelEdit()">Anulează</button>
+    </form>
   </div>
 </div>

@@ -18,10 +18,21 @@ public class LeaveRequest {
     private Date endDate;
     private Integer approvedBy;
 
+    public Long getId() {
+        return id;
+    }
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+
+
     public void setStatus(String status) {this.status = status;}
     public String getStatus() {return this.status;}
 
-    public void setUserId(String userId) {this.userId = Integer.parseInt(userId);}
+    public void setUserId(int userId) {
+        this.userId = userId;
+    }
     public int getUserId() {return this.userId;}
 
     public void setLeaveTypeId(int leaveTypeId) {this.leaveTypeId = leaveTypeId;}
@@ -44,7 +55,4 @@ public class LeaveRequest {
         return notes;
     }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
 }
