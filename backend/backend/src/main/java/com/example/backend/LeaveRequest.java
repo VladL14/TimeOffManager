@@ -9,7 +9,7 @@ import java.util.Date;
 public class LeaveRequest {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    private Long id;
     private String status;
     private String notes;
     private int userId;
@@ -42,5 +42,9 @@ public class LeaveRequest {
 
     public String getNotes() {
         return notes;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
     }
 }
