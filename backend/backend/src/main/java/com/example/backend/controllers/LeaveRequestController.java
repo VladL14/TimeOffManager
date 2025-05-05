@@ -1,5 +1,8 @@
-package com.example.backend;
+package com.example.backend.controllers;
 
+import com.example.backend.entities.LeaveRequest;
+import com.example.backend.RequestStatus;
+import com.example.backend.repositories.LeaveRequestRepository;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
@@ -22,7 +25,6 @@ public class LeaveRequestController {
     @PostMapping
     public LeaveRequest createLeaveRequest(@RequestBody LeaveRequest leaveRequest) {
         leaveRequest.setId(null);
-        leaveRequest.setStatus("PENDING");
         leaveRequest.setApprovedBy(null);
         return leaveRequestRepository.save(leaveRequest);
     }
@@ -36,9 +38,10 @@ public class LeaveRequestController {
             return ResponseEntity.notFound().build();
         }
 
-        if (!"PENDING".equalsIgnoreCase(existingRequest.getStatus())) {
-            return ResponseEntity.badRequest().body("Cererea nu poate fi modificată deoarece a fost deja aprobată sau respinsă.");
+        if (existingRequest.getStatus() != RequestStatus.PENDING) {
+            return ResponseEntity.badRequest().body("The request cannot be modified because it has already been approved or rejected.");
         }
+
 
         existingRequest.setStartDate(updatedRequest.getStartDate());
         existingRequest.setEndDate(updatedRequest.getEndDate());
