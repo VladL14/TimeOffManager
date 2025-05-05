@@ -74,8 +74,8 @@ export class UserDashboardComponent {
           this.clearOthers('leaveRequests');
         },
         error: (err) => {
-          console.error('Eroare la căutarea cererilor după userId', err);
-          alert('Nu s-au putut încărca cererile pentru acest utilizator.');
+          console.error('Cannot find by userId', err);
+          alert('The requests could not be loaded');
         }
       });
     }
@@ -84,7 +84,7 @@ export class UserDashboardComponent {
   createLeaveRequest() {
     this.http.post('/api/leaverequests', this.newLeaveRequest).subscribe({
       next: () => {
-        alert('Cererea a fost adăugată cu succes!');
+        alert('The request was added successfully!');
         this.loadLeaveRequests();
         this.newLeaveRequest = {
           userId: '',
@@ -96,7 +96,7 @@ export class UserDashboardComponent {
         };
       },
       error: () => {
-        alert('Eroare la adăugarea cererii!');
+        alert('Error adding the request!');
       }
     });
   }
@@ -116,13 +116,13 @@ export class UserDashboardComponent {
 
     this.http.put(`/api/leaverequests/${this.selectedRequest.id}`, this.selectedRequest).subscribe({
       next: () => {
-        alert('Cererea a fost modificată cu succes!');
+        alert('The request was updated successfully!');
         this.loadLeaveRequests();
         this.selectedRequest = null;
       },
       error: (err) => {
-        console.error('Eroare la modificarea cererii!', err);
-        alert('Eroare la modificarea cererii!');
+        console.error('Error at the modify of request', err);
+        alert('Error at the modify of request');
       }
     });
   }
