@@ -1,5 +1,6 @@
-package com.example.backend;
+package com.example.backend.entities;
 
+import com.example.backend.RequestStatus;
 import jakarta.persistence.*;
 
 import java.util.Date;
@@ -10,7 +11,7 @@ public class LeaveRequest {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private String status;
+    private RequestStatus status;
     private String notes;
     private int userId;
     private int leaveTypeId;
@@ -27,8 +28,8 @@ public class LeaveRequest {
 
 
 
-    public void setStatus(String status) {this.status = status;}
-    public String getStatus() {return this.status;}
+    public void setStatus(RequestStatus status) {this.status = status;}
+    public RequestStatus getStatus() {return this.status;}
 
     public void setUserId(int userId) {
         this.userId = userId;

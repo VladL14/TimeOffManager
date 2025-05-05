@@ -1,5 +1,7 @@
 package com.example.backend;
 
+import com.example.backend.entities.*;
+import com.example.backend.repositories.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;

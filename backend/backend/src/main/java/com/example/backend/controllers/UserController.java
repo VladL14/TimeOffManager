@@ -1,5 +1,7 @@
-package com.example.backend;
+package com.example.backend.controllers;
 
+import com.example.backend.entities.User;
+import com.example.backend.repositories.UserRepository;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
