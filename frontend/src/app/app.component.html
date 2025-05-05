@@ -9,7 +9,6 @@
     <!-- <button (click)="loadAssignments()">Vezi Atribuiri Proiecte</button> -->
   </div>
 
-  <!-- Creare cerere concediu -->
   <div style="margin: 20px;">
     <h2>Adaugă Cerere Concediu</h2>
     <form (submit)="createLeaveRequest()">
@@ -27,7 +26,6 @@
     <button (click)="searchLeaveRequestsByUser()">Caută</button>
   </div>
   
-  <!-- Lista cereri concediu -->
   <div *ngIf="leaveRequests.length > 0">
     <h2>Cereri Concediu</h2>
     <ul style="list-style: none; padding: 0;">
@@ -43,7 +41,6 @@
     </ul>
   </div>
 
-  <!-- Editare cerere concediu -->
   <div *ngIf="selectedRequest">
     <h2>Editează Cerere</h2>
     <form (submit)="updateLeaveRequest()">

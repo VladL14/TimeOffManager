@@ -23,7 +23,8 @@ export class AppComponent {
     leaveTypeId: '',
     startDate: '',
     endDate: '',
-    notes: ''
+    notes: '',
+    status: 'PENDING'
   };
   
 
@@ -65,7 +66,7 @@ export class AppComponent {
       this.clearOthers('assignments');
     });
   }
-  userIdToSearch: number | null = null;  // Adăugăm un câmp pentru inputul din HTML
+  userIdToSearch: number | null = null;
 
   searchLeaveRequestsByUser() {
     if (this.userIdToSearch !== null) {
@@ -92,7 +93,8 @@ export class AppComponent {
           leaveTypeId: '',
           startDate: '',
           endDate: '',
-          notes: ''
+          notes: '',
+          status: 'PENDING'
         };
       },
       error: () => {
@@ -113,7 +115,7 @@ export class AppComponent {
       return;
     }
   
-    console.log('Updating request:', this.selectedRequest);  // VERIFICĂ că selectedRequest are id!
+    console.log('Updating request:', this.selectedRequest);  
   
     this.http.put(`/api/leaverequests/${this.selectedRequest.id}`, this.selectedRequest).subscribe({
       next: () => {
