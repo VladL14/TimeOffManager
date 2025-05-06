@@ -5,7 +5,7 @@ export type Role = 'ADMIN' | 'USER' | 'MANAGER';
   providedIn: 'root'
 })
 export class RoleService {
-  private role: Role = 'USER'; // Default role
+  private role: Role = 'USER';
 
   getRole(): Role {
     return this.role;
