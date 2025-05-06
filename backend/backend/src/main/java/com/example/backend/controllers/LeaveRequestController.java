@@ -69,8 +69,8 @@ public class LeaveRequestController {
 
         LeaveRequest leaveRequest = optionalLeaveRequest.get();
 
-        if (!"PENDING".equalsIgnoreCase(leaveRequest.getStatus().toString())) {
-            return ResponseEntity.badRequest().body("The request cannot be approved");
+        if (leaveRequest.getStatus() != RequestStatus.PENDING) {
+            return ResponseEntity.badRequest().body("The request cannot be approved###");
         }
 
         leaveRequest.setStatus(RequestStatus.APPROVED);
@@ -89,7 +89,7 @@ public class LeaveRequestController {
             return ResponseEntity.notFound().build();
         }
         LeaveRequest leaveRequest = optionalLeaveRequest.get();
-        if (!"PENDING".equalsIgnoreCase(leaveRequest.getStatus().toString()))
+        if (leaveRequest.getStatus() != RequestStatus.PENDING )
         {
             return ResponseEntity.badRequest().body("The request cannot be rejected");
         }
