@@ -1,55 +1,54 @@
-<div style="text-align: center; margin-top: 40px; font-family: Arial, sans-serif;">
-    <h1 style="margin-bottom: 30px;">TimeOff Manager</h1>
-  
-    <div style="margin-bottom: 20px;">
-      <!-- <button (click)="loadUsers()">Vezi Utilizatori</button>
-      <button (click)="loadProjects()">Vezi Proiecte</button>
-      <button (click)="loadLeaveTypes()">Vezi Tipuri Concediu</button> -->
-      <button (click)="loadLeaveRequests()">Vezi Cereri Concediu</button>
-      <!-- <button (click)="loadAssignments()">Vezi Atribuiri Proiecte</button> -->
-    </div>
-  
-    <div style="margin: 20px;">
-      <h2>Adaugă Cerere Concediu</h2>
-      <form (submit)="createLeaveRequest()">
-        <input type="number" placeholder="User ID" [(ngModel)]="newLeaveRequest.userId" name="userId" required>
-        <input type="number" placeholder="Leave Type ID" [(ngModel)]="newLeaveRequest.leaveTypeId" name="leaveTypeId" required>
-        <input type="date" placeholder="Start Date" [(ngModel)]="newLeaveRequest.startDate" name="startDate" required>
-        <input type="date" placeholder="End Date" [(ngModel)]="newLeaveRequest.endDate" name="endDate" required>
-        <input type="text" placeholder="Notes" [(ngModel)]="newLeaveRequest.notes" name="notes">
-        <button type="submit">Creează Cerere</button>
-      </form>
-    </div>
-    <div style="margin: 20px;">
-      <h2>Caută Cereri după User ID</h2>
-      <input type="number" placeholder="Introdu User ID" [(ngModel)]="userIdToSearch" name="userIdToSearch">
-      <button (click)="searchLeaveRequestsByUser()">Caută</button>
-    </div>
-    
-    <div *ngIf="leaveRequests.length > 0">
-      <h2>Cereri Concediu</h2>
-      <ul style="list-style: none; padding: 0;">
-        <li *ngFor="let request of leaveRequests">
-          ID: {{ request.id }} - User ID: {{ request.userId }} <br/>
-          Tip Concediu ID: {{ request.leaveTypeId }} <br/>
-          {{ request.startDate }} ➔ {{ request.endDate }}<br/>
-          Motiv: {{ request.notes }} <br/>
-          Status: {{ request.status }} <br/>
-          <button (click)="selectRequestForEdit(request)">Editează</button>
-          <hr/>
-        </li>
-      </ul>
-    </div>
-  
-    <div *ngIf="selectedRequest">
-      <h2>Editează Cerere</h2>
-      <form (submit)="updateLeaveRequest()">
-        <input type="date" [(ngModel)]="selectedRequest.startDate" name="editStartDate" required>
-        <input type="date" [(ngModel)]="selectedRequest.endDate" name="editEndDate" required>
-        <input type="text" [(ngModel)]="selectedRequest.notes" name="editNotes">
-        <button type="submit">Salvează modificările</button>
-        <button type="button" (click)="cancelEdit()">Anulează</button>
-      </form>
-    </div>
+<div class="dashboard-container">
+
+  <div class="actions">
+    <button (click)="toggleShowRequests()">Vezi cererile mele</button>
+    <button (click)="toggleShowForm()">Adaugă cerere</button>
   </div>
-  
+  <div *ngIf="showForm" class="section">
+    <h2>Adaugă cerere</h2>
+    <form (submit)="submitNewRequest()">
+      <label>ID Tip concediu:</label>
+      <input type="number" [(ngModel)]="newLeaveRequest.leaveTypeId" name="leaveTypeId" required />
+
+      <label>De la:</label>
+      <input type="date" [(ngModel)]="newLeaveRequest.startDate" name="startDate" required />
+
+      <label>Până la:</label>
+      <input type="date" [(ngModel)]="newLeaveRequest.endDate" name="endDate" required />
+
+      <label>Note:</label>
+      <input type="text" [(ngModel)]="newLeaveRequest.notes" name="notes" />
+
+      <button type="submit">Trimite</button>
+    </form>
+  </div>
+  <div *ngIf="showRequests && leaveRequests.length > 0" class="section">
+    <h2>Cererile tale</h2>
+    <ul>
+      <li *ngFor="let request of leaveRequests">
+        <p><strong>ID:</strong> {{ request.id }}</p>
+        <p><strong>Tip:</strong> {{ request.leaveTypeId }}</p>
+        <p><strong>Perioadă:</strong> {{ request.startDate }} ➔ {{ request.endDate }}</p>
+        <p><strong>Status:</strong> {{ request.status }}</p>
+        <button (click)="selectRequestForEdit(request)">Editează</button>
+        <hr />
+      </li>
+    </ul>
+  </div>
+  <div *ngIf="selectedRequest" class="section">
+    <h2>Editează cererea</h2>
+    <form (submit)="updateLeaveRequest()">
+      <label>De la:</label>
+      <input type="date" [(ngModel)]="selectedRequest.startDate" name="editStartDate" required />
+
+      <label>Până la:</label>
+      <input type="date" [(ngModel)]="selectedRequest.endDate" name="editEndDate" required />
+
+      <label>Note:</label>
+      <input type="text" [(ngModel)]="selectedRequest.notes" name="editNotes" />
+
+      <button type="submit">Salvează</button>
+      <button type="button" (click)="cancelEdit()">Anulează</button>
+    </form>
+  </div>
+</div>

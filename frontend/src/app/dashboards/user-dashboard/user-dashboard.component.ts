@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { NgIf, NgForOf } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { UserService } from '../../user.service';
 
 @Component({
   selector: 'app-user-dashboard',
@@ -11,118 +12,105 @@ import { FormsModule } from '@angular/forms';
   styleUrls: ['./user-dashboard.component.scss']
 })
 export class UserDashboardComponent {
-  users: any[] = [];
-  projects: any[] = [];
   leaveTypes: any[] = [];
   leaveRequests: any[] = [];
-  assignments: any[] = [];
 
   newLeaveRequest = {
-    userId: '',
     leaveTypeId: '',
     startDate: '',
     endDate: '',
     notes: '',
     status: 'PENDING'
   };
+  showForm = false;
+  showRequests = false;
+
+  
+
+  toggleShowForm() {
+    this.showForm = !this.showForm;
+  }
+
+  toggleShowRequests() {
+    if (!this.showRequests) {
+      this.loadDashboard();
+    }
+    this.showRequests = !this.showRequests;
+  }
+
 
   selectedRequest: any = null;
-  userIdToSearch: number | null = null;
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient, private userService: UserService) {}
 
-  loadUsers() {
-    this.http.get<any[]>('/api/users').subscribe(data => {
-      this.users = data;
-      this.clearOthers('users');
-    });
+  ngOnInit() {
+    this.getLeaveTypes();
+  }
+  loadDashboard() {
+    this.getMyLeaveRequests();
   }
 
-  loadProjects() {
-    this.http.get<any[]>('/api/projects').subscribe(data => {
-      this.projects = data;
-      this.clearOthers('projects');
-    });
-  }
-
-  loadLeaveTypes() {
+  getLeaveTypes() {
     this.http.get<any[]>('/api/leavetypes').subscribe(data => {
       this.leaveTypes = data;
-      this.clearOthers('leaveTypes');
     });
   }
 
-  loadLeaveRequests() {
-    this.http.get<any[]>('/api/leaverequests').subscribe(data => {
+  getMyLeaveRequests() {
+    const currentUserId = this.userService.getUser();
+    this.http.get<any[]>(`/api/leaverequests/user/${currentUserId}`).subscribe(data => {
       this.leaveRequests = data;
-      this.clearOthers('leaveRequests');
     });
   }
 
-  loadAssignments() {
-    this.http.get<any[]>('/api/assignments').subscribe(data => {
-      this.assignments = data;
-      this.clearOthers('assignments');
-    });
-  }
+  submitNewRequest() {
+    const currentUserId = this.userService.getUser();
 
-  searchLeaveRequestsByUser() {
-    if (this.userIdToSearch !== null) {
-      this.http.get<any[]>(`/api/leaverequests/user/${this.userIdToSearch}`).subscribe({
-        next: (data) => {
-          this.leaveRequests = data;
-          this.clearOthers('leaveRequests');
-        },
-        error: (err) => {
-          console.error('Cannot find by userId', err);
-          alert('The requests could not be loaded');
-        }
-      });
-    }
-  }
+    const requestData = {
+      leaveTypeId: this.newLeaveRequest.leaveTypeId,
+      startDate: this.newLeaveRequest.startDate,
+      endDate: this.newLeaveRequest.endDate,
+      notes: this.newLeaveRequest.notes,
+      status: 'PENDING',
+      userId: currentUserId
+    };
 
-  createLeaveRequest() {
-    this.http.post('/api/leaverequests', this.newLeaveRequest).subscribe({
+    this.http.post('/api/leaverequests', requestData).subscribe({
       next: () => {
-        alert('The request was added successfully!');
-        this.loadLeaveRequests();
-        this.newLeaveRequest = {
-          userId: '',
-          leaveTypeId: '',
-          startDate: '',
-          endDate: '',
-          notes: '',
-          status: 'PENDING'
-        };
+        alert('The request was sent successfully!');
+        this.getMyLeaveRequests();
+        this.resetForm();
       },
       error: () => {
-        alert('Error adding the request!');
+        alert('Error while sending the request');
       }
     });
   }
 
   selectRequestForEdit(request: any) {
-    this.selectedRequest = { ...request };
-    console.log('Selected for edit:', this.selectedRequest);
+    this.selectedRequest = {
+      id: request.id,
+      leaveTypeId: request.leaveTypeId,
+      startDate: request.startDate,
+      endDate: request.endDate,
+      notes: request.notes,
+      status: request.status,
+      userId: request.userId
+    };
   }
+  
 
   updateLeaveRequest() {
-    if (!this.selectedRequest?.id) {
-      console.error('ID is missing for update');
-      return;
-    }
-
-    console.log('Updating request:', this.selectedRequest);
+    if (!this.selectedRequest?.id) return;
 
     this.http.put(`/api/leaverequests/${this.selectedRequest.id}`, this.selectedRequest).subscribe({
       next: () => {
-        alert('The request was updated successfully!');
-        this.loadLeaveRequests();
+        alert('Request updated successfully!');
+        this.getMyLeaveRequests();
         this.selectedRequest = null;
       },
-      error: (err) => {
-        console.error('Error at the modify of request', err);
-        alert('Error at the modify of request');
+      error: () => {
+        alert('Error while updating the request');
       }
     });
   }
@@ -131,11 +119,13 @@ export class UserDashboardComponent {
     this.selectedRequest = null;
   }
 
-  clearOthers(current: string) {
-    if (current !== 'users') this.users = [];
-    if (current !== 'projects') this.projects = [];
-    if (current !== 'leaveTypes') this.leaveTypes = [];
-    if (current !== 'leaveRequests') this.leaveRequests = [];
-    if (current !== 'assignments') this.assignments = [];
+  resetForm() {
+    this.newLeaveRequest = {
+      leaveTypeId: '',
+      startDate: '',
+      endDate: '',
+      notes: '',
+      status: 'PENDING'
+    };
   }
 }

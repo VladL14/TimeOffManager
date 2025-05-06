@@ -6,8 +6,10 @@ import { AdminDashboardComponent } from './dashboards/admin-dashboard/admin-dash
 
 export const routes: Routes = [
     {
-       path: '', component: MainMenuComponent
-    },
+       path: '', 
+       component: MainMenuComponent,
+       children: [
+    
     {
         path: 'dashboard/user', component: UserDashboardComponent
     },
@@ -16,5 +18,6 @@ export const routes: Routes = [
     },
     {
         path: 'dashboard/admin', component: AdminDashboardComponent
-    }
+    }]
+}
 ];
