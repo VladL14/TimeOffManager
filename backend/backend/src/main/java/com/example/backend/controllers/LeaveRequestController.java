@@ -3,6 +3,7 @@ package com.example.backend.controllers;
 import com.example.backend.entities.LeaveRequest;
 import com.example.backend.RequestStatus;
 import com.example.backend.repositories.LeaveRequestRepository;
+import com.example.backend.services.LeaveRequestService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
@@ -12,91 +13,48 @@ import java.util.Optional;
 @RequestMapping("/api/leaverequests")
 @CrossOrigin(origins = "http://localhost:4200")
 public class LeaveRequestController {
-    private final LeaveRequestRepository leaveRequestRepository;
+    private final LeaveRequestService leaveRequestService;
 
-    public LeaveRequestController(LeaveRequestRepository leaveRequestRepository) {
-        this.leaveRequestRepository = leaveRequestRepository;
+    public LeaveRequestController(LeaveRequestService leaveRequestService) {
+        this.leaveRequestService = leaveRequestService;
     }
 
     @GetMapping
     public List<LeaveRequest> getAllLeaveRequests() {
-        return leaveRequestRepository.findAll();
+        return leaveRequestService.getAll();
     }
 
     @PostMapping
     public LeaveRequest createLeaveRequest(@RequestBody LeaveRequest leaveRequest) {
-        leaveRequest.setId(null);
-        leaveRequest.setApprovedBy(null);
-        return leaveRequestRepository.save(leaveRequest);
+        return leaveRequestService.createLeaveRequest(leaveRequest);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateLeaveRequest(@PathVariable Long id, @RequestBody LeaveRequest updatedRequest) {
-        Optional<LeaveRequest> optionalLeaveRequest = leaveRequestRepository.findById(id);
-        if(optionalLeaveRequest.isEmpty())
-        {
-            return ResponseEntity.notFound().build();
-        }
-        LeaveRequest existingRequest = optionalLeaveRequest.get();
-
-        if (existingRequest.getStatus() != RequestStatus.PENDING) {
-            return ResponseEntity.badRequest().body("The request cannot be modified because it has already been approved or rejected.");
-        }
-
-
-        existingRequest.setStartDate(updatedRequest.getStartDate());
-        existingRequest.setEndDate(updatedRequest.getEndDate());
-        existingRequest.setNotes(updatedRequest.getNotes());
-        existingRequest.setLeaveTypeId(updatedRequest.getLeaveTypeId());
-
-        leaveRequestRepository.save(existingRequest);
-
-        return ResponseEntity.ok(existingRequest);
+    public ResponseEntity<?> updateLeaveRequest(@PathVariable long id, @RequestBody LeaveRequest leaveRequest) {
+        return leaveRequestService.updateLeaveRequest(id, leaveRequest);
     }
 
     @GetMapping("/user/{userId}")
     public List<LeaveRequest> getLeaveRequestsByUser(@PathVariable int userId) {
-        return leaveRequestRepository.findByUserId(userId);
+        return leaveRequestService.getLeaveRequestByUser(userId);
     }
 
     @PutMapping("/{id}/approve")
     public ResponseEntity<?> approveLeaveRequest(@PathVariable long id, @RequestParam int managerId) {
-        Optional<LeaveRequest> optionalLeaveRequest = leaveRequestRepository.findById(id);
-
-        if (optionalLeaveRequest.isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
-
-        LeaveRequest leaveRequest = optionalLeaveRequest.get();
-
-        if (leaveRequest.getStatus() != RequestStatus.PENDING) {
-            return ResponseEntity.badRequest().body("The request cannot be approved###");
-        }
-
-        leaveRequest.setStatus(RequestStatus.APPROVED);
-        leaveRequest.setApprovedBy(managerId);
-        leaveRequestRepository.save(leaveRequest);
-
-        return ResponseEntity.ok(leaveRequest);
+        return leaveRequestService.approveLeaveRequest(id, managerId);
     }
 
     @PutMapping("/{id}/reject")
-    public ResponseEntity<?> rejectLeaveRequest(@PathVariable long id, @RequestParam int managerId)
-    {
-        Optional<LeaveRequest> optionalLeaveRequest = leaveRequestRepository.findById(id);
-        if (optionalLeaveRequest.isEmpty())
-        {
-            return ResponseEntity.notFound().build();
-        }
-        LeaveRequest leaveRequest = optionalLeaveRequest.get();
-        if (leaveRequest.getStatus() != RequestStatus.PENDING )
-        {
-            return ResponseEntity.badRequest().body("The request cannot be rejected");
-        }
-        leaveRequest.setStatus(RequestStatus.REJECTED);
-        leaveRequest.setApprovedBy(managerId);
-        leaveRequestRepository.save(leaveRequest);
+    public ResponseEntity<?> rejectLeaveRequest(@PathVariable long id, @RequestParam int managerId) {
+        return leaveRequestService.rejectLeaveRequest(id, managerId);
+    }
 
-        return ResponseEntity.ok(leaveRequest);
+    @DeleteMapping("/{id}/delete")
+    public ResponseEntity<?> deleteLeaveRequest(@PathVariable long id) {
+        boolean deleted = leaveRequestService.deleteLeaveRequest(id);
+        if(deleted) {
+            return ResponseEntity.ok().build();
+        }
+        return ResponseEntity.notFound().build();
     }
 }
