@@ -2,7 +2,6 @@
   <h1>Time-Off Manager</h1>
   <p>Welcome, {{ userService.getName() }}</p>
   <div *ngIf="showDashboard" class="back-button-container">
-  <button (click)="goBackToMenu()">Înapoi la meniu</button>
 </div>
   <button *ngIf="!showDashboard" (click)="showDashboard = true">Go to {{ userService.getRole() }} dashboard</button>
 </div>
@@ -10,6 +9,7 @@
 <div *ngIf="showDashboard">
   <div *ngIf="userService.getRole() === 'USER'" class="dashboard-container">
     <div class="actions">
+      <button (click)="goBackToMenu()">Înapoi la meniu</button>
       <button (click)="toggleShowRequests()">Vezi cererile mele</button>
       <button (click)="toggleShowForm()">Adaugă cerere</button>
     </div>
@@ -78,7 +78,31 @@
 
   <div *ngIf="userService.getRole() === 'MANAGER'" class="dashboard-container">
     <h2>Dashboard Manager</h2>
-    <p>Manager</p>
+    <button (click)="goBackToMenu()">Înapoi la meniu</button>
+    <button (click)="toggleShowRequests()">Vezi cererile</button>
+    <div class="section" *ngIf="showRequests">
+      <h3>Cererile urilizatorilor</h3>
+      <ul>
+        <li *ngFor="let request of allRequests">
+          <p><strong>Utilizator:</strong> {{ request.userName }}</p>
+          <p><strong>Tip:</strong>
+            {{
+              request.leaveTypeId === 1 ? 'Vacation' :
+              request.leaveTypeId === 2 ? 'Sick leave' :
+              'Undefined'
+            }}
+          </p>
+          <p><strong>Perioadă:</strong> {{ formatDate(request.startDate) }} ➔ {{ formatDate(request.endDate) }}</p>
+          <p><strong>Note:</strong> {{ request.notes }}</p>
+          <p><strong>Status:</strong> {{ request.status }}</p>
+          <button *ngIf="request.status === 'PENDING'" (click)="approveLeaveRequest(request.id)">Aproba</button>
+          <button *ngIf="request.status === 'PENDING'" (click)="rejectLeaveRequest(request.id)">Respinge</button>
+        </li>
+      </ul>
+      <div *ngIf="allRequests.length === 0">
+        <p>Nu sunt cereri de concediu pentru aprobat.</p>
+    </div>
+
   </div>
 
   <div *ngIf="userService.getRole() === 'ADMIN'" class="dashboard-container">
