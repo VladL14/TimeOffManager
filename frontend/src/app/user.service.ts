@@ -1,23 +1,32 @@
 import { Injectable } from '@angular/core';
-export type Role = 'ADMIN' | 'MANAGER' | 'USER';
+import { HttpClient } from '@angular/common/http';
 
 @Injectable({
   providedIn: 'root'
 })
 export class UserService {
-  private user = 2;
+  private userId = 2;
+  private role: string = '';
+  private name: string = '';
 
+  constructor(private http: HttpClient) {}
+
+  loadUser() {
+    this.http.get<any>(`/api/users/${this.userId}`).subscribe(user => {
+      this.role=user.role.toUpperCase();
+      this.name=user.name;
+    });
+  }
   getUser(): number {
-    return this.user;
+    return this.userId;
   }
 
-  getRole(): Role {
-    switch (this.user) {
-      case 1: return 'ADMIN';
-      case 2: return 'USER';
-      case 3: return 'MANAGER';
-      default: return 'USER';
-    }
+  getRole(): string {
+    return this.role;
+  }
+
+  getName(): string {
+    return this.name;
   }
 
 }

@@ -1,10 +1,14 @@
 <div class="menu-container">
   <h1>Time-Off Manager</h1>
-  <p>Welcome, {{ role }}</p>
-  <button *ngIf="!showDashboard" (click)="showDashboard = true">Go to {{ role }} dashboard</button>
+  <p>Welcome, {{ userService.getName() }}</p>
+  <div *ngIf="showDashboard" class="back-button-container">
+  <button (click)="goBackToMenu()">Înapoi la meniu</button>
 </div>
+  <button *ngIf="!showDashboard" (click)="showDashboard = true">Go to {{ userService.getRole() }} dashboard</button>
+</div>
+
 <div *ngIf="showDashboard">
-  <div *ngIf="role === 'USER'" class="dashboard-container">
+  <div *ngIf="userService.getRole() === 'USER'" class="dashboard-container">
     <div class="actions">
       <button (click)="toggleShowRequests()">Vezi cererile mele</button>
       <button (click)="toggleShowForm()">Adaugă cerere</button>
@@ -67,17 +71,17 @@
 
         <button type="submit">Salveaza</button>
         <button type="button" (click)="deleteLeaveRequest(selectedRequest.id)" class="btn-delete">Sterge</button>
-        <button type="button" (click)="cancelEdit()">Anuleaza</button>
+        <button type="button" (click)="cancelEdit()">Inchide</button>
       </form>
     </div>
   </div>
 
-  <div *ngIf="role === 'MANAGER'" class="dashboard-container">
+  <div *ngIf="userService.getRole() === 'MANAGER'" class="dashboard-container">
     <h2>Dashboard Manager</h2>
     <p>Manager</p>
   </div>
 
-  <div *ngIf="role === 'ADMIN'" class="dashboard-container">
+  <div *ngIf="userService.getRole() === 'ADMIN'" class="dashboard-container">
     <h2>Dashboard Admin</h2>
     <p>Admin</p>
   </div>

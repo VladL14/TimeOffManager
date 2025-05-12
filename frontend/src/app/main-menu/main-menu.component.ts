@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { UserService, Role } from '../user.service';
+import { UserService} from '../user.service';
 import { NgIf, NgForOf } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
@@ -13,7 +13,10 @@ import { RouterModule } from '@angular/router';
   styleUrl: './main-menu.component.scss'
 })
 export class MainMenuComponent {
-  role: Role;
+  ngOnInit() {
+    this.userService.loadUser();
+  }
+
   showDashboard = false;
   showForm = false;
   showRequests = false;
@@ -35,11 +38,20 @@ export class MainMenuComponent {
   };
 
   constructor(
-    private userService: UserService,
+    public userService: UserService,
     private http: HttpClient
   ) {
-    this.role = this.userService.getRole();
+    this.userService.loadUser();
   }
+  goBackToMenu() {
+  this.showDashboard = false;
+  this.showForm = false;
+  this.showRequests = false;
+  this.selectedRequest = null;
+  this.leaveRequests = [];
+  //this.userService.resetUser(); 
+}
+
 
   goToDashboard() {
     this.showDashboard = true;
@@ -133,7 +145,7 @@ export class MainMenuComponent {
 
   deleteLeaveRequest(requestId: number) {
     if (confirm('Are you sure you want to delete this request?')) {
-      this.http.delete(`/api/leaverequests/${requestId}`).subscribe({
+      this.http.delete(`/api/leaverequests/${requestId}/delete`).subscribe({
         next: () => {
           alert('Request deleted successfully!');
           this.getMyLeaveRequests();
