@@ -22,6 +22,7 @@ export class MainMenuComponent {
   showRequests = false;
 
   leaveRequests: any[] = [];
+  allRequests: any[] = [];
   selectedRequest: any = null;
 
   predefinedLeaveTypes = [
@@ -49,12 +50,19 @@ export class MainMenuComponent {
   this.showRequests = false;
   this.selectedRequest = null;
   this.leaveRequests = [];
-  //this.userService.resetUser(); 
 }
 
+  loadAllRequests() {
+    this.http.get<any[]>('/api/leaverequests').subscribe(data => {
+      this.allRequests = data;
+    });
+  }
 
   goToDashboard() {
     this.showDashboard = true;
+    if (this.userService.getRole() === 'MANAGER') {
+      this.loadAllRequests();
+    }
   }
 
   toggleShowForm() {
@@ -63,8 +71,12 @@ export class MainMenuComponent {
 
   toggleShowRequests() {
     if (!this.showRequests) {
+      if(this.userService.getRole() === 'MANAGER') {
+        this.loadAllRequests();
+      }else{
       this.getMyLeaveRequests();
     }
+  }
     this.showRequests = !this.showRequests;
   }
 
@@ -156,8 +168,7 @@ export class MainMenuComponent {
       });
     }
   }
-
-  resetForm() {
+    resetForm() {
     this.newLeaveRequest = {
       leaveTypeId: '',
       startDate: '',
@@ -166,4 +177,31 @@ export class MainMenuComponent {
       status: 'PENDING'
     };
   }
+
+  approveLeaveRequest(requestId: number) {
+    const managerId = this.userService.getUser();
+    this.http.put(`/api/leaverequests/${requestId}/approve?managerId=${managerId}`, {}).subscribe({
+      next: () => {
+        alert('Request approved successfully!');
+        this.loadAllRequests();
+      },
+      error: () => {
+        alert('Error while approving the request');
+      }
+    });
+  }
+  rejectLeaveRequest(requestId: number) {
+    const managerId = this.userService.getUser();
+    this.http.put(`/api/leaverequests/${requestId}/reject?managerId=${managerId}`, {}).subscribe({
+      next: () => {
+        alert('Request rejected successfully!');
+        this.loadAllRequests();
+      },
+      error: () => {
+        alert('Error while rejecting the request');
+      }
+    });
+  }
+
+
 }
