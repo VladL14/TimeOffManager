@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
@@ -17,6 +18,10 @@ export class UserService {
       this.name=user.name;
     });
   }
+  getVacationBalance(userId: number): Observable<number> {
+  return this.http.get<number>(`/api/leavetypes/user/${userId}/vacation`);
+  }
+
   getUser(): number {
     return this.userId;
   }

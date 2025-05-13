@@ -13,10 +13,7 @@ import { RouterModule } from '@angular/router';
   styleUrl: './main-menu.component.scss'
 })
 export class MainMenuComponent {
-  ngOnInit() {
-    this.userService.loadUser();
-  }
-
+  vacationBalance: number | undefined;
   showDashboard = false;
   showForm = false;
   showRequests = false;
@@ -41,9 +38,15 @@ export class MainMenuComponent {
   constructor(
     public userService: UserService,
     private http: HttpClient
-  ) {
-    this.userService.loadUser();
+  ) {}
+  ngOnInit() {
+    this.http.get<any>(`/api/users/${this.userService.getUser()}`).subscribe(user => {
+      this.userService['role'] = user.role.toUpperCase();
+      this.userService['name'] = user.name;
+      this.goToDashboard();
+    });
   }
+
   goBackToMenu() {
   this.showDashboard = false;
   this.showForm = false;
@@ -60,6 +63,12 @@ export class MainMenuComponent {
 
   goToDashboard() {
     this.showDashboard = true;
+    if (this.userService.getRole() === 'USER') {
+      this.userService.getVacationBalance(this.userService.getUser()).subscribe(balance => {
+        this.vacationBalance = balance;
+      });
+
+    }
     if (this.userService.getRole() === 'MANAGER') {
       this.loadAllRequests();
     }

@@ -1,6 +1,6 @@
 <div class="menu-container">
-  <h1>Time-Off Manager</h1>
-  <p>Welcome, {{ userService.getName() }}</p>
+  <h1 id="titlu">Time-Off Manager</h1>
+  <p id="welcome">Welcome, {{ userService.getName() }}</p>
   <div *ngIf="showDashboard" class="back-button-container">
 </div>
   <button *ngIf="!showDashboard" (click)="showDashboard = true">Go to {{ userService.getRole() }} dashboard</button>
@@ -9,6 +9,7 @@
 <div *ngIf="showDashboard">
   <div *ngIf="userService.getRole() === 'USER'" class="dashboard-container">
     <div class="actions">
+      <p *ngIf="vacationBalance !== undefined" id="vacanta">Zile de vacanță rămase: {{ vacationBalance }}</p>
       <button (click)="goBackToMenu()">Înapoi la meniu</button>
       <button (click)="toggleShowRequests()">Vezi cererile mele</button>
       <button (click)="toggleShowForm()">Adaugă cerere</button>
@@ -77,9 +78,10 @@
   </div>
 
   <div *ngIf="userService.getRole() === 'MANAGER'" class="dashboard-container">
-    <h2>Dashboard Manager</h2>
+  <div class="actions">
     <button (click)="goBackToMenu()">Înapoi la meniu</button>
     <button (click)="toggleShowRequests()">Vezi cererile</button>
+  </div>
     <div class="section" *ngIf="showRequests">
       <h3>Cererile urilizatorilor</h3>
       <ul>
