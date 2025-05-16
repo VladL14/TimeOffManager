@@ -6,6 +6,11 @@
   },
   {
     "userId": 2,
+    "name": "Vacation",
+    "balanceDays": 20
+  },
+  {
+    "userId": 2,
     "name": "Sick Leave",
     "balanceDays": 10
   }
