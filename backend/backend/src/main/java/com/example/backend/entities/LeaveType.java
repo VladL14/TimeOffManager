@@ -12,6 +12,16 @@ public class LeaveType {
     private int balanceDays;
     private int userId;
 
+    public LeaveType(String name, int balanceDays, User user){
+        this.name = name;
+        this.balanceDays = balanceDays;
+        this.userId = user.getId();
+    }
+
+    public LeaveType() {
+
+    }
+
     public void setName(String name)
     {
         this.name = name;
