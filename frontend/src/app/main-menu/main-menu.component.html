@@ -9,7 +9,7 @@
 <div *ngIf="showDashboard">
   <div *ngIf="userService.getRole() === 'USER'" class="dashboard-container">
     <div class="actions">
-      <p *ngIf="vacationBalance !== undefined" id="vacanta">Zile de vacanță rămase: {{ vacationBalance }}</p>
+      <p *ngIf="vacationBalance !== undefined" id="vacanta">Zile de concediu de vacanță rămase: {{ vacationBalance }}</p>
       <p *ngIf="sickLeaveBalance !== undefined" id="concediu">Zile de concediu medical rămase: {{ sickLeaveBalance }}</p>
       <p *ngIf="unpaidLeaveBalance !== undefined" id="neplatit">Zile de concediu neplatit rămase: {{ unpaidLeaveBalance }}</p>
       <button (click)="goBackToMenu()">Înapoi la meniu</button>
@@ -45,12 +45,7 @@
       <ul>
         <li *ngFor="let request of leaveRequests">
             <p><strong>Tip:</strong>
-            {{
-              request.leaveTypeId === 1 ? 'Vacation' :
-              request.leaveTypeId === 2 ? 'Sick leave' :
-              request.leaveTypeId === 3 ? 'Unpaid leave' :
-              'Undefined'
-            }}
+            {{request.leaveTypeName}}
           </p>
           <p><strong>Perioadă:</strong> {{ formatDate(request.startDate) }} ➔ {{ formatDate(request.endDate) }}</p>
           <p><strong>Status:</strong> {{ request.status }}</p>
@@ -82,22 +77,42 @@
 
   <div *ngIf="userService.getRole() === 'MANAGER'" class="dashboard-container">
   <div class="actions">
-    <p *ngIf="vacationBalance !== undefined" id="vacanta">Zile de vacanță rămase: {{ vacationBalance }}</p>
+    <p *ngIf="vacationBalance !== undefined" id="vacanta">Zile de concediu de vacanță rămase: {{ vacationBalance }}</p>
+    <p *ngIf="sickLeaveBalance !== undefined" id="concediu">Zile de concediu medical rămase: {{ sickLeaveBalance }}</p>
+    <p *ngIf="unpaidLeaveBalance !== undefined" id="neplatit">Zile de concediu neplatit rămase: {{ unpaidLeaveBalance }}</p>
     <button (click)="goBackToMenu()">Înapoi la meniu</button>
-    <button (click)="toggleShowRequests()">Vezi cererile</button>
+    <button (click)="toggleShowRequests()">Vezi toate cererile</button>
+    <button (click)="toggleShowForm()">Adaugă cerere</button>
   </div>
+  <div *ngIf="showForm" class="section">
+      <h2>Adaugă cerere</h2>
+      <form (submit)="submitNewRequest()">
+        <label>Tip concediu:</label>
+        <select [(ngModel)]="newLeaveRequest.leaveTypeName" name="leaveTypeName" required>
+          <option *ngFor="let type of predefinedLeaveTypes" [value]="type.name">
+            {{ type.name }}
+          </option>
+        </select>
+
+        <label>De la:</label>
+        <input type="date" [(ngModel)]="newLeaveRequest.startDate" name="startDate" required />
+
+        <label>Până la:</label>
+        <input type="date" [(ngModel)]="newLeaveRequest.endDate" name="endDate" required />
+
+        <label>Note:</label>
+        <input type="text" [(ngModel)]="newLeaveRequest.notes" name="notes" />
+
+        <button type="submit">Trimite</button>
+      </form>
+    </div>
     <div class="section" *ngIf="showRequests">
       <h3>Cererile urilizatorilor</h3>
       <ul>
         <li *ngFor="let request of allRequests">
           <p><strong>Utilizator:</strong> {{ request.userName }}</p>
           <p><strong>Tip:</strong>
-            {{
-              request.leaveTypeId === 1 ? 'Vacation' :
-              request.leaveTypeId === 2 ? 'Sick leave' :
-              request.leaveTypeId === 3 ? 'Unpaid leave' :
-              'Undefined'
-            }}
+            {{request.leaveTypeName}}
           </p>
           <p><strong>Perioadă:</strong> {{ formatDate(request.startDate) }} ➔ {{ formatDate(request.endDate) }}</p>
           <p><strong>Note:</strong> {{ request.notes }}</p>
@@ -115,5 +130,5 @@
   <div *ngIf="userService.getRole() === 'ADMIN'" class="dashboard-container">
     <h2>Dashboard Admin</h2>
     <p>Admin</p>
-  </div>
+  </div>
 </div>

@@ -26,8 +26,8 @@ export class MainMenuComponent {
 
   predefinedLeaveTypes = [
     { name: 'Vacation' },
-    { name: 'Sick leave' },
-    { name: 'Unpaid leave' },
+    { name: 'Sick Leave' },
+    { name: 'Unpaid' },
   ];
 
   newLeaveRequest = {
@@ -44,7 +44,6 @@ export class MainMenuComponent {
   ) {}
   ngOnInit() {
     this.userService.loadUser().subscribe(() => {
-      if (this.userService.getRole() === 'USER') {
       this.userService.getVacationBalance(this.userService.getUser()).subscribe(balance => {
         this.vacationBalance = balance;
       });
@@ -55,7 +54,6 @@ export class MainMenuComponent {
         this.unpaidLeaveBalance = balance;
       });
 
-    }
     if (this.userService.getRole() === 'MANAGER') {
       this.loadAllRequests();
     }
