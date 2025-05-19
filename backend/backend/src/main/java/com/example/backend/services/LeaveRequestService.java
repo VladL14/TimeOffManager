@@ -69,13 +69,7 @@ public class LeaveRequestService {
             return ResponseEntity.badRequest().body("Leave type does not exist.");
         }
 
-        // Verificam daca tipul de concediu apartine user-ului
         LeaveType leaveType = optionalLeaveType.get();
-        if(leaveType.getUserId() != userId)
-        {
-            return ResponseEntity.badRequest().body("This leave type does not belong to the user.");
-        }
-
         // Verificam daca user-ul are destule zile de concediu
         if(leaveType.getBalanceDays() < daysRequested)
         {

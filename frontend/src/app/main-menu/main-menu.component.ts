@@ -39,13 +39,12 @@ export class MainMenuComponent {
     public userService: UserService,
     private http: HttpClient
   ) {}
-  ngOnInit() {
-    this.http.get<any>(`/api/users/${this.userService.getUser()}`).subscribe(user => {
-      this.userService['role'] = user.role.toUpperCase();
-      this.userService['name'] = user.name;
-      this.goToDashboard();
-    });
-  }
+ngOnInit() {
+  this.userService.loadUser().subscribe(() => {
+    this.goToDashboard();
+  });
+}
+
 
   goBackToMenu() {
   this.showDashboard = false;

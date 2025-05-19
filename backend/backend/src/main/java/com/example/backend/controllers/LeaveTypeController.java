@@ -30,4 +30,16 @@ public class LeaveTypeController {
         int balance = leaveTypeService.getVacationBalance(userId);
         return ResponseEntity.ok(balance);
     }
+
+    @GetMapping("/user/{userId}/sick_leave")
+    public ResponseEntity<Integer> getSickLeaveBalance(@PathVariable int userId) {
+        int balance = leaveTypeService.getSickLeaveBalance(userId);
+        return ResponseEntity.ok(balance);
+    }
+
+    @GetMapping("/user/{userId}/unpaid")
+    public ResponseEntity<Integer> getUnpaidLeaveBalance(@PathVariable int userId) {
+        int balance = leaveTypeService.getUnpaidLeaveBalance(userId);
+        return ResponseEntity.ok(balance);
+    }
 }

@@ -17,4 +17,14 @@ public class LeaveTypeService {
         LeaveType leaveType = leaveTypeRepository.findByUserIdAndName(userId, "Vacation").get();
         return leaveType.getBalanceDays();
     }
+
+    public int getSickLeaveBalance(int userId) {
+        LeaveType leaveType = leaveTypeRepository.findByUserIdAndName(userId, "Sick Leave").get();
+        return leaveType.getBalanceDays();
+    }
+
+    public int getUnpaidLeaveBalance(int userId) {
+        LeaveType leaveType = leaveTypeRepository.findByUserIdAndName(userId, "Unpaid").get();
+        return leaveType.getBalanceDays();
+    }
 }
