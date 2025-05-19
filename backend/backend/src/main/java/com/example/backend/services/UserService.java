@@ -4,10 +4,12 @@ import com.example.backend.entities.LeaveType;
 import com.example.backend.entities.User;
 import com.example.backend.repositories.LeaveTypeRepository;
 import com.example.backend.repositories.UserRepository;
+import org.springframework.expression.spel.ast.OpAnd;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.PathVariable;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class UserService {
@@ -43,5 +45,17 @@ public class UserService {
         leaveTypeRepository.saveAll(defaultTypes);
 
         return savedUser;
+    }
+
+    public boolean deleteUser(Long id)
+    {
+        Optional<User> optionalUser = userRepository.findById(id);
+        if (optionalUser.isEmpty()) {
+            return false;
+        }
+        User user = optionalUser.get();
+        user.setIsActive(false);
+        userRepository.save(user);
+        return true;
     }
 }

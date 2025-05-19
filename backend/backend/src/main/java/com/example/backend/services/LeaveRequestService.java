@@ -5,18 +5,20 @@ import com.example.backend.entities.LeaveRequest;
 import com.example.backend.entities.LeaveType;
 import com.example.backend.repositories.LeaveRequestRepository;
 import com.example.backend.repositories.LeaveTypeRepository;
+import com.example.backend.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.repository.query.FluentQuery;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
-
+import com.example.backend.entities.User;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -27,18 +29,43 @@ import java.util.function.Function;
 public class LeaveRequestService {
     private final LeaveRequestRepository leaveRequestRepository;
     private final LeaveTypeRepository leaveTypeRepository;
+    private final UserRepository userRepository;
 
     @Autowired
-    public LeaveRequestService(LeaveRequestRepository leaveRequestRepository, UserService userService, LeaveTypeRepository leaveTypeRepository, LeaveTypeService leaveTypeService)
+    public LeaveRequestService(LeaveRequestRepository leaveRequestRepository, UserService userService, LeaveTypeRepository leaveTypeRepository, LeaveTypeService leaveTypeService, UserRepository userRepository)
     {
         this.leaveRequestRepository = leaveRequestRepository;
         this.leaveTypeRepository = leaveTypeRepository;
+        this.userRepository = userRepository;
     }
 
     public List<LeaveRequest> getAll()
     {
         return leaveRequestRepository.findAll();
     }
+
+    public boolean isUserManager(int userId)
+    {
+        Optional<User> optionalUser = userRepository.findById((long) userId);
+        if(optionalUser.isEmpty())
+        {
+            return false;
+        }
+        User user = optionalUser.get();
+        return "Manager".equalsIgnoreCase(user.getRole());
+    }
+
+    public boolean isUserActive(int userId)
+    {
+        Optional<User> optionalUser = userRepository.findById((long) userId);
+        if(optionalUser.isEmpty())
+        {
+            return false;
+        }
+        User user = optionalUser.get();
+        return user.getIsActive();
+    }
+
 
     public ResponseEntity<?> createLeaveRequest(LeaveRequest leaveRequest)
     {
@@ -111,66 +138,80 @@ public class LeaveRequestService {
     }
 
     public ResponseEntity<?> approveLeaveRequest(@PathVariable long id, @RequestParam int managerId) {
-        Optional<LeaveRequest> optionalLeaveRequest = leaveRequestRepository.findById(id);
+        if(isUserManager(managerId)) {
+            if(isUserActive(managerId)) {
+                Optional<LeaveRequest> optionalLeaveRequest = leaveRequestRepository.findById(id);
 
-        if (optionalLeaveRequest.isEmpty()) {
-            return ResponseEntity.notFound().build();
+                if (optionalLeaveRequest.isEmpty()) {
+                    return ResponseEntity.notFound().build();
+                }
+
+                LeaveRequest leaveRequest = optionalLeaveRequest.get();
+
+                if (leaveRequest.getStatus() != RequestStatus.PENDING) {
+                    return ResponseEntity.badRequest().body("The request cannot be approved");
+                }
+
+                Date startDate = leaveRequest.getStartDate();
+                Date endDate = leaveRequest.getEndDate();
+                long diffInMillis = endDate.getTime() - startDate.getTime();
+                long daysRequested = TimeUnit.DAYS.convert(diffInMillis, TimeUnit.MILLISECONDS) + 1;
+
+                int userId = leaveRequest.getUserId();
+
+                Optional<LeaveType> optionalLeaveType = leaveTypeRepository.findByUserIdAndId(userId, leaveRequest.getLeaveTypeId());
+                if (optionalLeaveType.isEmpty()) {
+                    return ResponseEntity.badRequest().body("User does not have leave type configured.");
+                }
+
+                LeaveType leaveType = optionalLeaveType.get();
+                String leaveName = leaveType.getName();
+
+                if (leaveName.equalsIgnoreCase("Vacation") || leaveName.equalsIgnoreCase("Sick Leave")
+                        || leaveName.equalsIgnoreCase("Unpaid")) {
+                    if (leaveType.getBalanceDays() < daysRequested) {
+                        return ResponseEntity.badRequest().body("Not enough " + leaveName.toLowerCase() + " days available.");
+                    }
+                    leaveType.setBalanceDays(leaveType.getBalanceDays() - (int) daysRequested);
+                    leaveTypeRepository.save(leaveType);
+                } else {
+                    return ResponseEntity.badRequest().body("Unsupported leave type.");
+                }
+
+                leaveRequest.setStatus(RequestStatus.APPROVED);
+                leaveRequest.setApprovedBy(managerId);
+                leaveRequestRepository.save(leaveRequest);
+
+                return ResponseEntity.ok(leaveRequest);
+            }
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Manager account is inactive.");
         }
-
-        LeaveRequest leaveRequest = optionalLeaveRequest.get();
-
-        if (leaveRequest.getStatus() != RequestStatus.PENDING) {
-            return ResponseEntity.badRequest().body("The request cannot be approved");
-        }
-
-        Date startDate = leaveRequest.getStartDate();
-        Date endDate = leaveRequest.getEndDate();
-        long diffInMillis = endDate.getTime() - startDate.getTime();
-        long daysRequested = TimeUnit.DAYS.convert(diffInMillis, TimeUnit.MILLISECONDS) + 1;
-
-        int userId = leaveRequest.getUserId();
-
-        Optional<LeaveType> optionalLeaveType = leaveTypeRepository.findByUserIdAndName(userId, "Vacation");
-
-        if (optionalLeaveType.isEmpty()) {
-            return ResponseEntity.badRequest().body("User does not have a vacation leave type configured.");
-        }
-
-        LeaveType leaveType = optionalLeaveType.get();
-
-        if (leaveType.getBalanceDays() < daysRequested) {
-            return ResponseEntity.badRequest().body("Not enough vacation days available.");
-        }
-
-        leaveType.setBalanceDays(leaveType.getBalanceDays() - (int) daysRequested);
-        leaveTypeRepository.save(leaveType);
-
-        leaveRequest.setStatus(RequestStatus.APPROVED);
-        leaveRequest.setApprovedBy(managerId);
-        leaveRequestRepository.save(leaveRequest);
-
-        return ResponseEntity.ok(leaveRequest);
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Access denied.Only managers can approve requests.");
     }
-
 
     public ResponseEntity<?> rejectLeaveRequest(@PathVariable long id, @RequestParam int managerId)
     {
-        Optional<LeaveRequest> optionalLeaveRequest = leaveRequestRepository.findById(id);
-        if (optionalLeaveRequest.isEmpty())
-        {
-            return ResponseEntity.notFound().build();
-        }
-        LeaveRequest leaveRequest = optionalLeaveRequest.get();
-        if (leaveRequest.getStatus() != RequestStatus.PENDING)
-        {
-            return ResponseEntity.badRequest().body("The request cannot be rejected");
-        }
-        leaveRequest.setStatus(RequestStatus.REJECTED);
-        leaveRequest.setApprovedBy(managerId);
-        leaveRequestRepository.save(leaveRequest);
+        if(isUserManager(managerId)) {
+            if(isUserActive(managerId)) {
+                Optional<LeaveRequest> optionalLeaveRequest = leaveRequestRepository.findById(id);
+                if (optionalLeaveRequest.isEmpty()) {
+                    return ResponseEntity.notFound().build();
+                }
+                LeaveRequest leaveRequest = optionalLeaveRequest.get();
+                if (leaveRequest.getStatus() != RequestStatus.PENDING) {
+                    return ResponseEntity.badRequest().body("The request cannot be rejected");
+                }
+                leaveRequest.setStatus(RequestStatus.REJECTED);
+                leaveRequest.setApprovedBy(managerId);
+                leaveRequestRepository.save(leaveRequest);
 
-        return ResponseEntity.ok(leaveRequest);
+                return ResponseEntity.ok(leaveRequest);
+            }
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Manager account is inactive.");
+        }
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Access denied.Only managers can reject requests.");
     }
+
     public boolean deleteLeaveRequest(@PathVariable long id)
     {
         Optional<LeaveRequest> optionalLeaveRequest = leaveRequestRepository.findById(id);
