@@ -6,7 +6,7 @@ import { Observable, tap } from 'rxjs';
   providedIn: 'root'
 })
 export class UserService {
-  private userId = 2; // sau 3, în funcție de userul dorit
+  private userId = 2;
   private role: string = '';
   private name: string = '';
 
@@ -23,6 +23,12 @@ export class UserService {
 
   getVacationBalance(userId: number): Observable<number> {
     return this.http.get<number>(`/api/leavetypes/user/${userId}/vacation`);
+  }
+  getSickBalance(userId: number): Observable<number> {
+    return this.http.get<number>(`/api/leavetypes/user/${userId}/sick_leave`);
+  }
+  getUnpaidBalance(userId: number): Observable<number> {
+    return this.http.get<number>(`/api/leavetypes/user/${userId}/unpaid`);
   }
 
   getUser(): number {

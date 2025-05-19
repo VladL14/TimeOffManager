@@ -14,6 +14,8 @@ import { RouterModule } from '@angular/router';
 })
 export class MainMenuComponent {
   vacationBalance: number | undefined;
+  sickLeaveBalance: number | undefined;
+  unpaidLeaveBalance: number | undefined;
   showDashboard = false;
   showForm = false;
   showRequests = false;
@@ -23,12 +25,13 @@ export class MainMenuComponent {
   selectedRequest: any = null;
 
   predefinedLeaveTypes = [
-    { id: 1, name: 'Vacation' },
-    { id: 2, name: 'Sick leave' },
+    { name: 'Vacation' },
+    { name: 'Sick leave' },
+    { name: 'Unpaid leave' },
   ];
 
   newLeaveRequest = {
-    leaveTypeId: '',
+    leaveTypeName: '',
     startDate: '',
     endDate: '',
     notes: '',
@@ -39,11 +42,25 @@ export class MainMenuComponent {
     public userService: UserService,
     private http: HttpClient
   ) {}
-ngOnInit() {
-  this.userService.loadUser().subscribe(() => {
-    this.goToDashboard();
-  });
-}
+  ngOnInit() {
+    this.userService.loadUser().subscribe(() => {
+      if (this.userService.getRole() === 'USER') {
+      this.userService.getVacationBalance(this.userService.getUser()).subscribe(balance => {
+        this.vacationBalance = balance;
+      });
+      this.userService.getSickBalance(this.userService.getUser()).subscribe(balance => {
+        this.sickLeaveBalance = balance;
+      });
+      this.userService.getUnpaidBalance(this.userService.getUser()).subscribe(balance => {
+        this.unpaidLeaveBalance = balance;
+      });
+
+    }
+    if (this.userService.getRole() === 'MANAGER') {
+      this.loadAllRequests();
+    }
+    });
+  }
 
 
   goBackToMenu() {
@@ -62,15 +79,6 @@ ngOnInit() {
 
   goToDashboard() {
     this.showDashboard = true;
-    if (this.userService.getRole() === 'USER') {
-      this.userService.getVacationBalance(this.userService.getUser()).subscribe(balance => {
-        this.vacationBalance = balance;
-      });
-
-    }
-    if (this.userService.getRole() === 'MANAGER') {
-      this.loadAllRequests();
-    }
   }
 
   toggleShowForm() {
@@ -112,7 +120,7 @@ ngOnInit() {
     const currentUserId = this.userService.getUser();
 
     const requestData = {
-      leaveTypeId: this.newLeaveRequest.leaveTypeId,
+      leaveTypeName: this.newLeaveRequest.leaveTypeName,
       startDate: this.newLeaveRequest.startDate,
       endDate: this.newLeaveRequest.endDate,
       notes: this.newLeaveRequest.notes,
@@ -135,7 +143,7 @@ ngOnInit() {
   selectRequestForEdit(request: any) {
     this.selectedRequest = {
       id: request.id,
-      leaveTypeId: request.leaveTypeId,
+      leaveTypeName: request.leaveTypeName,
       startDate: request.startDate,
       endDate: request.endDate,
       notes: request.notes,
@@ -178,7 +186,7 @@ ngOnInit() {
   }
     resetForm() {
     this.newLeaveRequest = {
-      leaveTypeId: '',
+      leaveTypeName: '',
       startDate: '',
       endDate: '',
       notes: '',

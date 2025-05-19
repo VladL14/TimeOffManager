@@ -10,6 +10,8 @@
   <div *ngIf="userService.getRole() === 'USER'" class="dashboard-container">
     <div class="actions">
       <p *ngIf="vacationBalance !== undefined" id="vacanta">Zile de vacanță rămase: {{ vacationBalance }}</p>
+      <p *ngIf="sickLeaveBalance !== undefined" id="concediu">Zile de concediu medical rămase: {{ sickLeaveBalance }}</p>
+      <p *ngIf="unpaidLeaveBalance !== undefined" id="neplatit">Zile de concediu neplatit rămase: {{ unpaidLeaveBalance }}</p>
       <button (click)="goBackToMenu()">Înapoi la meniu</button>
       <button (click)="toggleShowRequests()">Vezi cererile mele</button>
       <button (click)="toggleShowForm()">Adaugă cerere</button>
@@ -19,8 +21,8 @@
       <h2>Adaugă cerere</h2>
       <form (submit)="submitNewRequest()">
         <label>Tip concediu:</label>
-        <select [(ngModel)]="newLeaveRequest.leaveTypeId" name="leaveTypeId" required>
-          <option *ngFor="let type of predefinedLeaveTypes" [value]="type.id">
+        <select [(ngModel)]="newLeaveRequest.leaveTypeName" name="leaveTypeName" required>
+          <option *ngFor="let type of predefinedLeaveTypes" [value]="type.name">
             {{ type.name }}
           </option>
         </select>
@@ -46,6 +48,7 @@
             {{
               request.leaveTypeId === 1 ? 'Vacation' :
               request.leaveTypeId === 2 ? 'Sick leave' :
+              request.leaveTypeId === 3 ? 'Unpaid leave' :
               'Undefined'
             }}
           </p>
@@ -79,6 +82,7 @@
 
   <div *ngIf="userService.getRole() === 'MANAGER'" class="dashboard-container">
   <div class="actions">
+    <p *ngIf="vacationBalance !== undefined" id="vacanta">Zile de vacanță rămase: {{ vacationBalance }}</p>
     <button (click)="goBackToMenu()">Înapoi la meniu</button>
     <button (click)="toggleShowRequests()">Vezi cererile</button>
   </div>
@@ -91,6 +95,7 @@
             {{
               request.leaveTypeId === 1 ? 'Vacation' :
               request.leaveTypeId === 2 ? 'Sick leave' :
+              request.leaveTypeId === 3 ? 'Unpaid leave' :
               'Undefined'
             }}
           </p>
