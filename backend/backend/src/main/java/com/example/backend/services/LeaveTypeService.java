@@ -15,6 +15,10 @@ public class LeaveTypeService {
     private final LeaveTypeRepository leaveTypeRepository;
     private final UserRepository userRepository;
 
+    private final String VACATION = "Vacation";
+    private final String SICKLEAVE= "Sick Leave";
+    private final String UNPAID = "Unpaid";
+
     public LeaveTypeService(LeaveTypeRepository leaveTypeRepository, UserRepository userRepository) {
         this.leaveTypeRepository = leaveTypeRepository;
         this.userRepository = userRepository;
@@ -48,7 +52,7 @@ public class LeaveTypeService {
 
     public int getVacationBalance(int userId) {
         if(isUserActive(userId)) {
-            LeaveType leaveType = getOrCreateLeaveType(userId,"Vacation",21);
+            LeaveType leaveType = getOrCreateLeaveType(userId,VACATION,21);
             return leaveType.getBalanceDays();
         }
         return -1;
@@ -56,7 +60,7 @@ public class LeaveTypeService {
 
     public int getSickLeaveBalance(int userId) {
         if(isUserActive(userId)) {
-            LeaveType leaveType = getOrCreateLeaveType(userId,"Sick Leave",183);
+            LeaveType leaveType = getOrCreateLeaveType(userId,SICKLEAVE,183);
             return leaveType.getBalanceDays();
         }
         return -1;
@@ -64,40 +68,43 @@ public class LeaveTypeService {
 
     public int getUnpaidLeaveBalance(int userId) {
         if(isUserActive(userId)) {
-            LeaveType leaveType = getOrCreateLeaveType(userId,"Unpaid",90);
+            LeaveType leaveType = getOrCreateLeaveType(userId,UNPAID,90);
             return leaveType.getBalanceDays();
         }
         return -1;
     }
 
     public ResponseEntity<?> setVacationBalance(int userId, int vacationBalance) {
-        if(isUserActive(userId)) {
-            Optional<LeaveType> optionalLeaveTypeleaveType = leaveTypeRepository.findByUserIdAndName(userId, "Vacation");
+        if (isUserActive(userId)) {
+            Optional<LeaveType> optionalLeaveType = leaveTypeRepository.findByUserIdAndName(userId, VACATION);
 
-            if (optionalLeaveTypeleaveType.isEmpty()) {
-                ResponseEntity.badRequest().body("Vacation balance does not exist");
+            if (optionalLeaveType.isPresent()) {
+                LeaveType leaveType = optionalLeaveType.get();
+                leaveType.setBalanceDays(vacationBalance);
+                leaveTypeRepository.save(leaveType);
+                return ResponseEntity.ok().build();
             }
 
-            LeaveType leaveType = optionalLeaveTypeleaveType.get();
-            leaveType.setBalanceDays(vacationBalance);
-            leaveTypeRepository.save(leaveType);
-            return ResponseEntity.ok().build();
+            return ResponseEntity.badRequest().body("Vacation balance does not exist");
         }
+
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body("User is not active");
     }
+
 
     public ResponseEntity<?> setSickLeaveBalance(int userId, int sickLeaveBalance)
     {
         if(isUserActive(userId)) {
-            Optional<LeaveType> optionalLeaveType = leaveTypeRepository.findByUserIdAndName(userId, "Sick Leave");
+            Optional<LeaveType> optionalLeaveType = leaveTypeRepository.findByUserIdAndName(userId, SICKLEAVE);
             if (optionalLeaveType.isEmpty()) {
                 ResponseEntity.badRequest().body("Sick balance does not exist");
-            }
-            LeaveType leaveType = optionalLeaveType.get();
 
-            leaveType.setBalanceDays(sickLeaveBalance);
-            leaveTypeRepository.save(leaveType);
-            return ResponseEntity.ok().build();
+                LeaveType leaveType = optionalLeaveType.get();
+
+                leaveType.setBalanceDays(sickLeaveBalance);
+                leaveTypeRepository.save(leaveType);
+                return ResponseEntity.ok().build();
+            }
         }
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body("User is not active");
     }
@@ -105,11 +112,12 @@ public class LeaveTypeService {
     public ResponseEntity<?> setUnpaidLeaveBalance(int userId, int unpaidLeaveBalance)
     {
         if(isUserActive(userId)) {
-            Optional<LeaveType> optionalLeaveType = leaveTypeRepository.findByUserIdAndName(userId, "Unpaid");
+            Optional<LeaveType> optionalLeaveType = leaveTypeRepository.findByUserIdAndName(userId, UNPAID);
             if (optionalLeaveType.isEmpty()) {
                 ResponseEntity.badRequest().body("Unpaid balance does not exist");
             }
             LeaveType leaveType = optionalLeaveType.get();
+
             leaveType.setBalanceDays(unpaidLeaveBalance);
             leaveTypeRepository.save(leaveType);
             return ResponseEntity.ok().build();

@@ -7,23 +7,14 @@ import com.example.backend.repositories.LeaveRequestRepository;
 import com.example.backend.repositories.LeaveTypeRepository;
 import com.example.backend.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Example;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.repository.query.FluentQuery;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
 import com.example.backend.entities.User;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Function;
 
 @Service
 public class LeaveRequestService {
@@ -87,10 +78,10 @@ public class LeaveRequestService {
         long daysRequested = TimeUnit.DAYS.convert(diffInMillies, TimeUnit.MILLISECONDS) + 1;
 
         int userId = leaveRequest.getUserId();
-        long leaveTypeId = leaveRequest.getLeaveTypeId();
+        String leaveTypeName = leaveRequest.getLeaveTypeName();
 
         // Cautam tipul de concediu in baza de date
-        Optional<LeaveType> optionalLeaveType = leaveTypeRepository.findById(leaveTypeId);
+        Optional<LeaveType> optionalLeaveType = leaveTypeRepository.findByUserIdAndName(userId,leaveTypeName);
         if(optionalLeaveType.isEmpty())
         {
             return ResponseEntity.badRequest().body("Leave type does not exist.");
@@ -109,7 +100,7 @@ public class LeaveRequestService {
         return ResponseEntity.ok(savedRequest);
     }
 
-    public ResponseEntity<?> updateLeaveRequest(@PathVariable Long id, @RequestBody LeaveRequest updatedRequest) {
+    public ResponseEntity<?> updateLeaveRequest(Long id,LeaveRequest updatedRequest) {
         Optional<LeaveRequest> optionalLeaveRequest = leaveRequestRepository.findById(id);
         if(optionalLeaveRequest.isEmpty())
         {
@@ -125,19 +116,18 @@ public class LeaveRequestService {
         existingRequest.setStartDate(updatedRequest.getStartDate());
         existingRequest.setEndDate(updatedRequest.getEndDate());
         existingRequest.setNotes(updatedRequest.getNotes());
-        existingRequest.setLeaveTypeId(updatedRequest.getLeaveTypeId());
 
         leaveRequestRepository.save(existingRequest);
 
         return ResponseEntity.ok(existingRequest);
     }
 
-    public List<LeaveRequest> getLeaveRequestByUser(@PathVariable int userId)
+    public List<LeaveRequest> getLeaveRequestByUser(int userId)
     {
         return leaveRequestRepository.findByUserId(userId);
     }
 
-    public ResponseEntity<?> approveLeaveRequest(@PathVariable long id, @RequestParam int managerId) {
+    public ResponseEntity<?> approveLeaveRequest(long id,int managerId) {
         if(isUserManager(managerId)) {
             if(isUserActive(managerId)) {
                 Optional<LeaveRequest> optionalLeaveRequest = leaveRequestRepository.findById(id);
@@ -159,7 +149,7 @@ public class LeaveRequestService {
 
                 int userId = leaveRequest.getUserId();
 
-                Optional<LeaveType> optionalLeaveType = leaveTypeRepository.findByUserIdAndId(userId, leaveRequest.getLeaveTypeId());
+                Optional<LeaveType> optionalLeaveType = leaveTypeRepository.findByUserIdAndName(userId, leaveRequest.getLeaveTypeName());
                 if (optionalLeaveType.isEmpty()) {
                     return ResponseEntity.badRequest().body("User does not have leave type configured.");
                 }
@@ -189,7 +179,7 @@ public class LeaveRequestService {
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Access denied.Only managers can approve requests.");
     }
 
-    public ResponseEntity<?> rejectLeaveRequest(@PathVariable long id, @RequestParam int managerId)
+    public ResponseEntity<?> rejectLeaveRequest(long id, int managerId)
     {
         if(isUserManager(managerId)) {
             if(isUserActive(managerId)) {
@@ -212,7 +202,7 @@ public class LeaveRequestService {
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Access denied.Only managers can reject requests.");
     }
 
-    public boolean deleteLeaveRequest(@PathVariable long id)
+    public boolean deleteLeaveRequest(long id)
     {
         Optional<LeaveRequest> optionalLeaveRequest = leaveRequestRepository.findById(id);
         if(optionalLeaveRequest.isEmpty())

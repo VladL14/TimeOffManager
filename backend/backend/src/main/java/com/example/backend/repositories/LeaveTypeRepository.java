@@ -7,5 +7,4 @@ import java.util.Optional;
 
 public interface LeaveTypeRepository extends JpaRepository<LeaveType, Long> {
     Optional<LeaveType> findByUserIdAndName(int userId, String name);
-    Optional<LeaveType> findByUserIdAndId(int userId, int id);
 }
