@@ -72,6 +72,11 @@ export class MainMenuComponent {
   loadAllRequests() {
     this.http.get<any[]>('/api/leaverequests').subscribe(data => {
       this.allRequests = data;
+      this.allRequests.forEach(request => {
+      this.userService.getUserById(request.userId).subscribe(user => {
+        request.userName = user.name;
+      });
+    });
     });
   }
 

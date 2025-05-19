@@ -1,7 +1,7 @@
 [
   {
     "userId": 1,
-    "leaveTypeName": 1,
+    "leaveTypeName": "Vacation",
     "startDate": "2025-05-01",
     "endDate": "2025-05-05",
     "status": "APPROVED",
@@ -10,7 +10,7 @@
   },
   {
     "userId": 2,
-    "leaveTypeName": 2,
+    "leaveTypeName": "Sick Leave",
     "startDate": "2025-04-20",
     "endDate": "2025-04-22",
     "status": "PENDING",

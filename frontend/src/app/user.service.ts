@@ -20,6 +20,10 @@ export class UserService {
       })
     );
   }
+  getUserById(userId: number): Observable<any> {
+  return this.http.get<any>(`/api/users/${userId}`);
+  }
+
 
   getVacationBalance(userId: number): Observable<number> {
     return this.http.get<number>(`/api/leavetypes/user/${userId}/vacation`);
