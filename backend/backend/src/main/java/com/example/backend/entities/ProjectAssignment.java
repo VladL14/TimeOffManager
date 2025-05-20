@@ -12,7 +12,7 @@ public class ProjectAssignment {
     private int projectId;
 
     public void setUserId(int userId) {this.userId = userId;}
-    public int getUserId() {return userId;}
+    public long getUserId() {return userId;}
 
     public void setProjectId(int projectId) {this.projectId = projectId;}
     public int getProjectId() {return projectId;}

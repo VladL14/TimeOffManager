@@ -12,6 +12,7 @@ public class Project {
     private String description;
     private int managerId;
 
+    public int getId() { return id; }
     public void setName(String name) {
         this.name = name;
     }

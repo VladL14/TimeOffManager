@@ -1,19 +1,14 @@
 package com.example.backend.services;
 
 import com.example.backend.RequestStatus;
-import com.example.backend.entities.LeaveRequest;
-import com.example.backend.entities.LeaveType;
-import com.example.backend.repositories.LeaveRequestRepository;
-import com.example.backend.repositories.LeaveTypeRepository;
-import com.example.backend.repositories.UserRepository;
+import com.example.backend.entities.*;
+import com.example.backend.repositories.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import com.example.backend.entities.User;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
+
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 @Service
@@ -21,13 +16,17 @@ public class LeaveRequestService {
     private final LeaveRequestRepository leaveRequestRepository;
     private final LeaveTypeRepository leaveTypeRepository;
     private final UserRepository userRepository;
+    private final ProjectRepository projectRepository;
+    private final ProjectAssignmentRepository projectAssignmentRepository;
 
     @Autowired
-    public LeaveRequestService(LeaveRequestRepository leaveRequestRepository, UserService userService, LeaveTypeRepository leaveTypeRepository, LeaveTypeService leaveTypeService, UserRepository userRepository)
+    public LeaveRequestService(LeaveRequestRepository leaveRequestRepository, UserService userService, LeaveTypeRepository leaveTypeRepository, LeaveTypeService leaveTypeService, UserRepository userRepository, ProjectRepository projectRepository, ProjectAssignmentRepository projectAssignmentRepository)
     {
         this.leaveRequestRepository = leaveRequestRepository;
         this.leaveTypeRepository = leaveTypeRepository;
         this.userRepository = userRepository;
+        this.projectRepository = projectRepository;
+        this.projectAssignmentRepository = projectAssignmentRepository;
     }
 
     public List<LeaveRequest> getAll()
@@ -214,5 +213,29 @@ public class LeaveRequestService {
         }
         leaveRequestRepository.delete(leaveRequest);
         return true;
+    }
+
+    public ResponseEntity<?> getSubordinatesLeaveRequests(long managerId)
+    {
+        if(isUserManager((int) managerId))
+        {
+            List<Project> managerProjects = projectRepository.findByManagerId(managerId);
+
+            List<Integer> projectIds = new ArrayList<>();
+            for (Project project : managerProjects) {
+                projectIds.add(project.getId());
+            }
+
+            List<ProjectAssignment> assignments = projectAssignmentRepository.findByProjectIdIn(projectIds);
+
+            Set<Long> userIds = new HashSet<>();
+            for (ProjectAssignment assignment : assignments) {
+                userIds.add(assignment.getUserId());
+            }
+
+            List<LeaveRequest> leaveRequests = leaveRequestRepository.findAllByUserIdIn(userIds);
+            return ResponseEntity.ok(leaveRequests);
+        }
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Access denied.User is not authorized.");
     }
 }

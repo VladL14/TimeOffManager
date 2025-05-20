@@ -58,4 +58,9 @@ public class LeaveRequestController {
         }
         return ResponseEntity.notFound().build();
     }
+
+    @GetMapping("/viewSubordinatesLeaveRequests/{managerId}")
+    public ResponseEntity<?> viewSubordinatesLeaveRequests(@PathVariable int managerId) {
+        return leaveRequestService.getSubordinatesLeaveRequests(managerId);
+    }
 }
