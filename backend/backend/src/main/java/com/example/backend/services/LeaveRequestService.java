@@ -45,6 +45,18 @@ public class LeaveRequestService {
         return "Manager".equalsIgnoreCase(user.getRole());
     }
 
+    public boolean isUserAdmin(int userId)
+    {
+        Optional<User> optionalUser = userRepository.findById((long) userId);
+        if(optionalUser.isEmpty())
+        {
+            return false;
+        }
+        User user = optionalUser.get();
+        return "Admin".equalsIgnoreCase(user.getRole());
+    }
+
+
     public boolean isUserActive(int userId)
     {
         Optional<User> optionalUser = userRepository.findById((long) userId);
@@ -126,9 +138,9 @@ public class LeaveRequestService {
         return leaveRequestRepository.findByUserId(userId);
     }
 
-    public ResponseEntity<?> approveLeaveRequest(long id,int managerId) {
-        if(isUserManager(managerId)) {
-            if(isUserActive(managerId)) {
+    public ResponseEntity<?> approveLeaveRequest(long id,int givenId) {
+        if(isUserManager(givenId) || isUserAdmin(givenId)) {
+            if(isUserActive(givenId)) {
                 Optional<LeaveRequest> optionalLeaveRequest = leaveRequestRepository.findById(id);
 
                 if (optionalLeaveRequest.isEmpty()) {
@@ -168,20 +180,20 @@ public class LeaveRequestService {
                 }
 
                 leaveRequest.setStatus(RequestStatus.APPROVED);
-                leaveRequest.setApprovedBy(managerId);
+                leaveRequest.setApprovedBy(givenId);
                 leaveRequestRepository.save(leaveRequest);
 
                 return ResponseEntity.ok(leaveRequest);
             }
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Manager account is inactive.");
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Manager or Admin account is inactive.");
         }
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Access denied.Only managers can approve requests.");
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Access denied.Only managers and admins can approve requests.");
     }
 
-    public ResponseEntity<?> rejectLeaveRequest(long id, int managerId)
+    public ResponseEntity<?> rejectLeaveRequest(long id, int givenId)
     {
-        if(isUserManager(managerId)) {
-            if(isUserActive(managerId)) {
+        if(isUserManager(givenId) || isUserAdmin(givenId)) {
+            if(isUserActive(givenId)) {
                 Optional<LeaveRequest> optionalLeaveRequest = leaveRequestRepository.findById(id);
                 if (optionalLeaveRequest.isEmpty()) {
                     return ResponseEntity.notFound().build();
@@ -191,14 +203,14 @@ public class LeaveRequestService {
                     return ResponseEntity.badRequest().body("The request cannot be rejected");
                 }
                 leaveRequest.setStatus(RequestStatus.REJECTED);
-                leaveRequest.setApprovedBy(managerId);
+                leaveRequest.setApprovedBy(givenId);
                 leaveRequestRepository.save(leaveRequest);
 
                 return ResponseEntity.ok(leaveRequest);
             }
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Manager account is inactive.");
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Manager or Admin account is inactive.");
         }
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Access denied.Only managers can reject requests.");
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Access denied.Only managers and admins can reject requests.");
     }
 
     public boolean deleteLeaveRequest(long id)
