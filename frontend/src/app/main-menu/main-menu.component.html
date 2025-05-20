@@ -81,7 +81,7 @@
     <p *ngIf="sickLeaveBalance !== undefined" id="concediu">Zile de concediu medical rămase: {{ sickLeaveBalance }}</p>
     <p *ngIf="unpaidLeaveBalance !== undefined" id="neplatit">Zile de concediu neplatit rămase: {{ unpaidLeaveBalance }}</p>
     <button (click)="goBackToMenu()">Înapoi la meniu</button>
-    <button (click)="toggleShowRequests()">Vezi toate cererile</button>
+    
     <button (click)="toggleShowForm()">Adaugă cerere</button>
   </div>
   <div *ngIf="showForm" class="section">
@@ -106,7 +106,33 @@
         <button type="submit">Trimite</button>
       </form>
     </div>
-    <div class="section" *ngIf="showRequests">
+
+  </div>
+
+  <div *ngIf="userService.getRole() === 'ADMIN'" class="dashboard-container">
+    <h2>Dashboard Admin</h2>
+    <div class="actions">
+      <button (click)="goBackToMenu()">Înapoi la meniu</button>
+      <button (click)="toggleShowUsers()">Vezi utilizatori</button>
+      <button (click)="toggleShowRequests()">Vezi toate cererile</button>
+      <button (click)="toggleShowUserForm()">Adaugă utilizator</button>
+  </div>
+  <div *ngIf="showUserForm" class="section">
+    <h3>Adaugă utilizator</h3>
+    <form (submit)="createUser()">
+      <label>Nume:</label>
+      <input [(ngModel)]="newUser.name" name="name" required>
+      <label>Email:</label>
+      <input [(ngModel)]="newUser.email" name="email" required>
+      <label>Rol:</label>
+      <select [(ngModel)]="newUser.role" name="role" required>
+        <option value="USER">USER</option>
+        <option value="MANAGER">MANAGER</option>
+      </select>
+      <button type="submit">Creeaza</button>
+    </form>
+  </div>
+      <div class="section" *ngIf="showRequests">
       <h3>Cererile urilizatorilor</h3>
       <ul>
         <li *ngFor="let request of allRequests">
@@ -125,30 +151,6 @@
         <p>Nu sunt cereri de concediu pentru aprobat.</p>
     </div>
 
-  </div>
-  </div>
-
-  <div *ngIf="userService.getRole() === 'ADMIN'" class="dashboard-container">
-    <h2>Dashboard Admin</h2>
-    <div class="actions">
-      <button (click)="goBackToMenu()">Înapoi la meniu</button>
-      <button (click)="toggleShowUsers()">Vezi utilizatori</button>
-      <button (click)="toggleShowUserForm()">Adaugă utilizator</button>
-  </div>
-  <div *ngIf="showUserForm" class="section">
-    <h3>Adaugă utilizator</h3>
-    <form (submit)="createUser()">
-      <label>Nume:</label>
-      <input [(ngModel)]="newUser.name" name="name" required>
-      <label>Email:</label>
-      <input [(ngModel)]="newUser.email" name="email" required>
-      <label>Rol:</label>
-      <select [(ngModel)]="newUser.role" name="role" required>
-        <option value="USER">USER</option>
-        <option value="MANAGER">MANAGER</option>
-      </select>
-      <button type="submit">Creeaza</button>
-    </form>
   </div>
     <div *ngIf="showUsers" class="section">
       <h3>Utilizatori</h3>

@@ -62,7 +62,7 @@ export class MainMenuComponent {
         this.unpaidLeaveBalance = balance;
       });
 
-    if (this.userService.getRole() === 'MANAGER') {
+    if (this.userService.getRole() === 'ADMIN') {
       this.loadAllRequests();
     }
     });
@@ -98,7 +98,7 @@ export class MainMenuComponent {
 
   toggleShowRequests() {
     if (!this.showRequests) {
-      if(this.userService.getRole() === 'MANAGER') {
+      if(this.userService.getRole() === 'ADMIN') {
         this.loadAllRequests();
       }else{
       this.getMyLeaveRequests();
@@ -206,8 +206,8 @@ export class MainMenuComponent {
   }
 
   approveLeaveRequest(requestId: number) {
-    const managerId = this.userService.getUser();
-    this.http.put(`/api/leaverequests/${requestId}/approve?managerId=${managerId}`, {}).subscribe({
+    const currentId = this.userService.getUser();
+    this.http.put(`/api/leaverequests/${requestId}/approve?managerId=${currentId}`, {}).subscribe({
       next: () => {
         alert('Request approved successfully!');
         this.loadAllRequests();
@@ -218,8 +218,8 @@ export class MainMenuComponent {
     });
   }
   rejectLeaveRequest(requestId: number) {
-    const managerId = this.userService.getUser();
-    this.http.put(`/api/leaverequests/${requestId}/reject?managerId=${managerId}`, {}).subscribe({
+    const currentId = this.userService.getUser();
+    this.http.put(`/api/leaverequests/${requestId}/reject?managerId=${currentId}`, {}).subscribe({
       next: () => {
         alert('Request rejected successfully!');
         this.loadAllRequests();
