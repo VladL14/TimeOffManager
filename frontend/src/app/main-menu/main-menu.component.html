@@ -126,9 +126,50 @@
     </div>
 
   </div>
+  </div>
 
   <div *ngIf="userService.getRole() === 'ADMIN'" class="dashboard-container">
     <h2>Dashboard Admin</h2>
-    <p>Admin</p>
+    <div class="actions">
+      <button (click)="goBackToMenu()">Înapoi la meniu</button>
+      <button (click)="toggleShowUsers()">Vezi utilizatori</button>
+      <button (click)="toggleShowUserForm()">Adaugă utilizator</button>
   </div>
+  <div *ngIf="showUserForm" class="section">
+    <h3>Adaugă utilizator</h3>
+    <form (submit)="createUser()">
+      <label>Nume:</label>
+      <input [(ngModel)]="newUser.name" name="name" required>
+      <label>Email:</label>
+      <input [(ngModel)]="newUser.email" name="email" required>
+      <label>Rol:</label>
+      <select [(ngModel)]="newUser.role" name="role" required>
+        <option value="USER">USER</option>
+        <option value="MANAGER">MANAGER</option>
+      </select>
+      <button type="submit">Creeaza</button>
+    </form>
+  </div>
+    <div *ngIf="showUsers" class="section">
+      <h3>Utilizatori</h3>
+      <ul>
+        <li *ngFor="let user of users">
+          <p><strong>Nume:</strong> {{ user.name }}</p>
+          <p><strong>Rol:</strong> {{ user.role }}</p>
+          <p><strong>Status:</strong> {{ user.isActive ? 'Activ' : 'Inactiv' }}</p>
+          <div *ngIf="user.isActive">
+          <label>Vacanță:</label>
+          <input type="number" [(ngModel)]="user.vacationBalance">
+          <label>Medical:</label>
+          <input type="number" [(ngModel)]="user.sickBalance">
+          <label>Neplătit:</label>
+          <input type="number" [(ngModel)]="user.unpaidBalance">
+          <button (click)="updateBalances(user.id, user.vacationBalance, user.sickBalance, user.unpaidBalance)">Modifica balantele</button>
+          <button (click)="deleteUser(user.id)">Sterge utilizator</button>
+          </div>
+
+        </li>
+      </ul>
+  </div>
+  
 </div>

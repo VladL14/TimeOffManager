@@ -96,15 +96,13 @@ public class LeaveTypeService {
     {
         if(isUserActive(userId)) {
             Optional<LeaveType> optionalLeaveType = leaveTypeRepository.findByUserIdAndName(userId, SICKLEAVE);
-            if (optionalLeaveType.isEmpty()) {
-                ResponseEntity.badRequest().body("Sick balance does not exist");
-
+            if(optionalLeaveType.isPresent()) {
                 LeaveType leaveType = optionalLeaveType.get();
-
                 leaveType.setBalanceDays(sickLeaveBalance);
                 leaveTypeRepository.save(leaveType);
                 return ResponseEntity.ok().build();
             }
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Sick Leave balance does not exist");
         }
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body("User is not active");
     }
@@ -113,14 +111,15 @@ public class LeaveTypeService {
     {
         if(isUserActive(userId)) {
             Optional<LeaveType> optionalLeaveType = leaveTypeRepository.findByUserIdAndName(userId, UNPAID);
-            if (optionalLeaveType.isEmpty()) {
-                ResponseEntity.badRequest().body("Unpaid balance does not exist");
-            }
-            LeaveType leaveType = optionalLeaveType.get();
+            if (optionalLeaveType.isPresent()) {
+                LeaveType leaveType = optionalLeaveType.get();
 
-            leaveType.setBalanceDays(unpaidLeaveBalance);
-            leaveTypeRepository.save(leaveType);
-            return ResponseEntity.ok().build();
+                leaveType.setBalanceDays(unpaidLeaveBalance);
+                leaveTypeRepository.save(leaveType);
+                return ResponseEntity.ok().build();
+            }
+
+            return ResponseEntity.badRequest().body("Unpaid balance does not exist");
         }
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body("User is not active");
     }

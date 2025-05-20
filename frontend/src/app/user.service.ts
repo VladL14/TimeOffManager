@@ -6,7 +6,7 @@ import { Observable, tap } from 'rxjs';
   providedIn: 'root'
 })
 export class UserService {
-  private userId = 3;
+  private userId = 1;
   private role: string = '';
   private name: string = '';
 

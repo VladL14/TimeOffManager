@@ -19,10 +19,18 @@ export class MainMenuComponent {
   showDashboard = false;
   showForm = false;
   showRequests = false;
-
+  users: any[] = [];
+  showUsers = false;
+  showUserForm = false;
   leaveRequests: any[] = [];
   allRequests: any[] = [];
   selectedRequest: any = null;
+
+  newUser = {
+    name: '',
+    email: '',
+    role: '',
+  }
 
   predefinedLeaveTypes = [
     { name: 'Vacation' },
@@ -221,6 +229,61 @@ export class MainMenuComponent {
       }
     });
   }
+  toggleShowUsers() {
+    if (!this.showUsers) {
+      this.loadUsers();
+    }
+    this.showUsers = !this.showUsers;
+  }
+  toggleShowUserForm() {
+    this.showUserForm = !this.showUserForm;
+  }
+  loadUsers() {
+    this.http.get<any[]>('/api/users').subscribe(data => {
+      this.users = data;
+      this.users.forEach(user => {
+        if(user.isActive === true){
+        this.userService.getVacationBalance(user.id).subscribe(balance => {
+          user.vacationBalance = balance;
+        });
+        this.userService.getSickBalance(user.id).subscribe(balance => {
+          user.sickBalance = balance;
+        });
+        this.userService.getUnpaidBalance(user.id).subscribe(balance => {
+          user.unpaidBalance = balance;
+        });
+      }
+      });
+    });
+  }
+  createUser() {
+    this.http.post('/api/users/createUser', this.newUser).subscribe(() => {
+      alert('User created successfully!');
+      this.newUser = {
+        name: '',
+        email: '',
+        role: '',
+      };
+      this.loadUsers();
+    });
+  }
+  deleteUser(userId: number) {
+    if(confirm('Are you sure you want to delete this user?')){
+      this.http.delete(`/api/users/deleteUser?id=${userId}`).subscribe(() => {
+        alert('User deleted successfully!');
+        
+      });
+      this.loadUsers();
+    }
+  }
+  updateBalances(userId: number, vacation: number, sickLeave:number, unpaid: number) {
+    this.http.put(`/api/leavetypes/user/${userId}/vacation/balance?newBalance=${vacation}`, {}).subscribe();
+    this.http.put(`/api/leavetypes/user/${userId}/sick_leave/balance?newBalance=${sickLeave}`, {}).subscribe();
+    this.http.put(`/api/leavetypes/user/${userId}/unpaid/balance?newBalance=${unpaid}`, {}).subscribe();
+    alert('Balances updated successfully!');
+    this.loadUsers();
+  }
+
 
 
 }
