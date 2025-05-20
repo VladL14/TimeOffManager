@@ -207,7 +207,7 @@ export class MainMenuComponent {
 
   approveLeaveRequest(requestId: number) {
     const currentId = this.userService.getUser();
-    this.http.put(`/api/leaverequests/${requestId}/approve?managerId=${currentId}`, {}).subscribe({
+    this.http.put(`/api/leaverequests/${requestId}/approve?givenId=${currentId}`, {}).subscribe({
       next: () => {
         alert('Request approved successfully!');
         this.loadAllRequests();
@@ -219,7 +219,7 @@ export class MainMenuComponent {
   }
   rejectLeaveRequest(requestId: number) {
     const currentId = this.userService.getUser();
-    this.http.put(`/api/leaverequests/${requestId}/reject?managerId=${currentId}`, {}).subscribe({
+    this.http.put(`/api/leaverequests/${requestId}/reject?givenId=${currentId}`, {}).subscribe({
       next: () => {
         alert('Request rejected successfully!');
         this.loadAllRequests();
