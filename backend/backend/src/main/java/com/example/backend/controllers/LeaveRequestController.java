@@ -41,13 +41,13 @@ public class LeaveRequestController {
     }
 
     @PutMapping("/{id}/approve")
-    public ResponseEntity<?> approveLeaveRequest(@PathVariable long id, @RequestParam int managerId) {
-        return leaveRequestService.approveLeaveRequest(id, managerId);
+    public ResponseEntity<?> approveLeaveRequest(@PathVariable long id, @RequestParam int givenId) {
+        return leaveRequestService.approveLeaveRequest(id, givenId);
     }
 
     @PutMapping("/{id}/reject")
-    public ResponseEntity<?> rejectLeaveRequest(@PathVariable long id, @RequestParam int managerId) {
-        return leaveRequestService.rejectLeaveRequest(id, managerId);
+    public ResponseEntity<?> rejectLeaveRequest(@PathVariable long id, @RequestParam int givenId) {
+        return leaveRequestService.rejectLeaveRequest(id, givenId);
     }
 
     @DeleteMapping("/{id}/delete")
