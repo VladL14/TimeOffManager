@@ -4,9 +4,12 @@ import com.example.backend.entities.LeaveType;
 import com.example.backend.repositories.LeaveTypeRepository;
 import com.example.backend.services.LeaveTypeService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/leavetypes")
@@ -26,8 +29,41 @@ public class LeaveTypeController {
     }
 
     @GetMapping("/user/{userId}/vacation")
-    public ResponseEntity<Integer> getVacationBalance(@PathVariable int userId) {
+    public ResponseEntity<?> getVacationBalance(@PathVariable int userId) {
         int balance = leaveTypeService.getVacationBalance(userId);
-        return ResponseEntity.ok(balance);
+        if(balance != -1)
+            return ResponseEntity.ok(balance);
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body("User is not active.");
+    }
+
+    @GetMapping("/user/{userId}/sick_leave")
+    public ResponseEntity<?> getSickLeaveBalance(@PathVariable int userId) {
+        int balance = leaveTypeService.getSickLeaveBalance(userId);
+        if(balance != -1)
+            return ResponseEntity.ok(balance);
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body("User is not active.");
+    }
+
+    @GetMapping("/user/{userId}/unpaid")
+    public ResponseEntity<?> getUnpaidLeaveBalance(@PathVariable int userId) {
+        int balance = leaveTypeService.getUnpaidLeaveBalance(userId);
+        if (balance != -1)
+            return ResponseEntity.ok(balance);
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body("User is not active.");
+    }
+
+    @PutMapping("/user/{userId}/vacation/balance")
+    public ResponseEntity<?> updateVacationBalance(@PathVariable int userId, @RequestParam int newBalance) {
+        return leaveTypeService.setVacationBalance(userId, newBalance);
+    }
+
+    @PutMapping("/user/{userId}/sick_leave/balance")
+    public ResponseEntity<?> updateSickLeaveBalance(@PathVariable int userId, @RequestParam int newBalance) {
+        return leaveTypeService.setSickLeaveBalance(userId, newBalance);
+    }
+
+    @PutMapping("/user/{userId}/unpaid/balance")
+    public ResponseEntity<?> updateUnpaidBalance(@PathVariable int userId, @RequestParam int newBalance) {
+        return leaveTypeService.setUnpaidLeaveBalance(userId, newBalance);
     }
 }

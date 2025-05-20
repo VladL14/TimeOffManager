@@ -14,7 +14,7 @@ public class LeaveRequest {
     private RequestStatus status;
     private String notes;
     private int userId;
-    private int leaveTypeId;
+    private String leaveTypeName;
     private Date startDate;
     private Date endDate;
     private Integer approvedBy;
@@ -36,8 +36,8 @@ public class LeaveRequest {
     }
     public int getUserId() {return this.userId;}
 
-    public void setLeaveTypeId(int leaveTypeId) {this.leaveTypeId = leaveTypeId;}
-    public int getLeaveTypeId() {return this.leaveTypeId;}
+    public void setLeaveTypeName(String leaveTypeName) {this.leaveTypeName = leaveTypeName;}
+    public String getLeaveTypeName() {return this.leaveTypeName;}
 
     public void setStartDate(Date startDate) {this.startDate = startDate;}
     public Date getStartDate() {return this.startDate;}

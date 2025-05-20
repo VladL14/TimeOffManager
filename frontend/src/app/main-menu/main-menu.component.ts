@@ -14,21 +14,32 @@ import { RouterModule } from '@angular/router';
 })
 export class MainMenuComponent {
   vacationBalance: number | undefined;
+  sickLeaveBalance: number | undefined;
+  unpaidLeaveBalance: number | undefined;
   showDashboard = false;
   showForm = false;
   showRequests = false;
-
+  users: any[] = [];
+  showUsers = false;
+  showUserForm = false;
   leaveRequests: any[] = [];
   allRequests: any[] = [];
   selectedRequest: any = null;
 
+  newUser = {
+    name: '',
+    email: '',
+    role: '',
+  }
+
   predefinedLeaveTypes = [
-    { id: 1, name: 'Vacation' },
-    { id: 2, name: 'Sick leave' },
+    { name: 'Vacation' },
+    { name: 'Sick Leave' },
+    { name: 'Unpaid' },
   ];
 
   newLeaveRequest = {
-    leaveTypeId: '',
+    leaveTypeName: '',
     startDate: '',
     endDate: '',
     notes: '',
@@ -40,12 +51,23 @@ export class MainMenuComponent {
     private http: HttpClient
   ) {}
   ngOnInit() {
-    this.http.get<any>(`/api/users/${this.userService.getUser()}`).subscribe(user => {
-      this.userService['role'] = user.role.toUpperCase();
-      this.userService['name'] = user.name;
-      this.goToDashboard();
+    this.userService.loadUser().subscribe(() => {
+      this.userService.getVacationBalance(this.userService.getUser()).subscribe(balance => {
+        this.vacationBalance = balance;
+      });
+      this.userService.getSickBalance(this.userService.getUser()).subscribe(balance => {
+        this.sickLeaveBalance = balance;
+      });
+      this.userService.getUnpaidBalance(this.userService.getUser()).subscribe(balance => {
+        this.unpaidLeaveBalance = balance;
+      });
+
+    if (this.userService.getRole() === 'MANAGER') {
+      this.loadAllRequests();
+    }
     });
   }
+
 
   goBackToMenu() {
   this.showDashboard = false;
@@ -58,20 +80,16 @@ export class MainMenuComponent {
   loadAllRequests() {
     this.http.get<any[]>('/api/leaverequests').subscribe(data => {
       this.allRequests = data;
+      this.allRequests.forEach(request => {
+      this.userService.getUserById(request.userId).subscribe(user => {
+        request.userName = user.name;
+      });
+    });
     });
   }
 
   goToDashboard() {
     this.showDashboard = true;
-    if (this.userService.getRole() === 'USER') {
-      this.userService.getVacationBalance(this.userService.getUser()).subscribe(balance => {
-        this.vacationBalance = balance;
-      });
-
-    }
-    if (this.userService.getRole() === 'MANAGER') {
-      this.loadAllRequests();
-    }
   }
 
   toggleShowForm() {
@@ -113,7 +131,7 @@ export class MainMenuComponent {
     const currentUserId = this.userService.getUser();
 
     const requestData = {
-      leaveTypeId: this.newLeaveRequest.leaveTypeId,
+      leaveTypeName: this.newLeaveRequest.leaveTypeName,
       startDate: this.newLeaveRequest.startDate,
       endDate: this.newLeaveRequest.endDate,
       notes: this.newLeaveRequest.notes,
@@ -136,7 +154,7 @@ export class MainMenuComponent {
   selectRequestForEdit(request: any) {
     this.selectedRequest = {
       id: request.id,
-      leaveTypeId: request.leaveTypeId,
+      leaveTypeName: request.leaveTypeName,
       startDate: request.startDate,
       endDate: request.endDate,
       notes: request.notes,
@@ -179,7 +197,7 @@ export class MainMenuComponent {
   }
     resetForm() {
     this.newLeaveRequest = {
-      leaveTypeId: '',
+      leaveTypeName: '',
       startDate: '',
       endDate: '',
       notes: '',
@@ -211,6 +229,61 @@ export class MainMenuComponent {
       }
     });
   }
+  toggleShowUsers() {
+    if (!this.showUsers) {
+      this.loadUsers();
+    }
+    this.showUsers = !this.showUsers;
+  }
+  toggleShowUserForm() {
+    this.showUserForm = !this.showUserForm;
+  }
+  loadUsers() {
+    this.http.get<any[]>('/api/users').subscribe(data => {
+      this.users = data;
+      this.users.forEach(user => {
+        if(user.isActive === true){
+        this.userService.getVacationBalance(user.id).subscribe(balance => {
+          user.vacationBalance = balance;
+        });
+        this.userService.getSickBalance(user.id).subscribe(balance => {
+          user.sickBalance = balance;
+        });
+        this.userService.getUnpaidBalance(user.id).subscribe(balance => {
+          user.unpaidBalance = balance;
+        });
+      }
+      });
+    });
+  }
+  createUser() {
+    this.http.post('/api/users/createUser', this.newUser).subscribe(() => {
+      alert('User created successfully!');
+      this.newUser = {
+        name: '',
+        email: '',
+        role: '',
+      };
+      this.loadUsers();
+    });
+  }
+  deleteUser(userId: number) {
+    if(confirm('Are you sure you want to delete this user?')){
+      this.http.delete(`/api/users/deleteUser?id=${userId}`).subscribe(() => {
+        alert('User deleted successfully!');
+        
+      });
+      this.loadUsers();
+    }
+  }
+  updateBalances(userId: number, vacation: number, sickLeave:number, unpaid: number) {
+    this.http.put(`/api/leavetypes/user/${userId}/vacation/balance?newBalance=${vacation}`, {}).subscribe();
+    this.http.put(`/api/leavetypes/user/${userId}/sick_leave/balance?newBalance=${sickLeave}`, {}).subscribe();
+    this.http.put(`/api/leavetypes/user/${userId}/unpaid/balance?newBalance=${unpaid}`, {}).subscribe();
+    alert('Balances updated successfully!');
+    this.loadUsers();
+  }
+
 
 
 }

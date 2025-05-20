@@ -25,7 +25,8 @@ public class LeaveRequestController {
     }
 
     @PostMapping
-    public LeaveRequest createLeaveRequest(@RequestBody LeaveRequest leaveRequest) {
+    public ResponseEntity<?> createLeaveRequest(@RequestBody LeaveRequest leaveRequest)
+    {
         return leaveRequestService.createLeaveRequest(leaveRequest);
     }
 
