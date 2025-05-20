@@ -24,8 +24,8 @@ public class ProjectAssignmentService {
     }
 
     public ResponseEntity<?> createProjectAssignment(ProjectAssignment projectAssignment) {
-        long userId = projectAssignment.getUserId();
-        long projectId = projectAssignment.getProjectId();
+        long userId = projectAssignment.getUser().getId();
+        long projectId = projectAssignment.getProject().getId();
 
         Optional<User> userOptional = userRepository.findById(userId);
         if (userOptional.isEmpty()) {

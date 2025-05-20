@@ -9,5 +9,4 @@ import java.util.Set;
 public interface LeaveRequestRepository extends JpaRepository<LeaveRequest, Long> {
     List<LeaveRequest> findByUserId(int userId);
     List<LeaveRequest> findAllByUserIdIn(Set<Long> userIds);
-
 }

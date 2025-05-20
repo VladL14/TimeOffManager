@@ -8,13 +8,28 @@ public class ProjectAssignment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
-    private int userId;
-    private int projectId;
 
-    public void setUserId(int userId) {this.userId = userId;}
-    public long getUserId() {return userId;}
+    @ManyToOne
+    @JoinColumn(name = "userId")
+    private User user;
 
-    public void setProjectId(int projectId) {this.projectId = projectId;}
-    public int getProjectId() {return projectId;}
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "projectId")
+    private Project project;
 
+    public User getUser() {
+        return user;
+    }
+
+    public Project getProject() {
+        return project;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
+    }
+
+    public void setProject(Project project) {
+        this.project = project;
+    }
 }

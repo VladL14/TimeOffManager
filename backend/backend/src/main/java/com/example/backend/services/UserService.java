@@ -93,7 +93,7 @@ public class UserService {
 
            Set<Long> userIds = new HashSet<>();
            for (ProjectAssignment assignment : assignments) {
-               userIds.add(assignment.getUserId());
+               userIds.add((long) assignment.getUser().getId());
            }
 
            List<User> subordinates = userRepository.findAllById(userIds);

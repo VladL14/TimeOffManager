@@ -1,5 +1,6 @@
 package com.example.backend;
 
+import com.example.backend.dto.ProjectAssignmentDTO;
 import com.example.backend.entities.*;
 import com.example.backend.repositories.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -9,6 +10,7 @@ import org.springframework.stereotype.Component;
 import java.io.InputStream;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 @Component
 public class DataLoader implements CommandLineRunner {
@@ -49,8 +51,19 @@ public class DataLoader implements CommandLineRunner {
         leaveTypeRepository.saveAll(leaveTypes);
 
         InputStream projectAssignmentsStream = getClass().getResourceAsStream("/projectsAssignments.json");
-        List<ProjectAssignment> projectAssignments = Arrays.asList(mapper.readValue(projectAssignmentsStream, ProjectAssignment[].class));
-        projectAssignmentRepository.saveAll(projectAssignments);
+        List<ProjectAssignmentDTO> assignmentDTOs = Arrays.asList(mapper.readValue(projectAssignmentsStream, ProjectAssignmentDTO[].class));
+
+        for (ProjectAssignmentDTO dto : assignmentDTOs) {
+            Optional<User> userOpt = userRepository.findById(dto.getUserId());
+            Optional<Project> projectOpt = projectRepository.findById(dto.getProjectId());
+
+            if (userOpt.isPresent() && projectOpt.isPresent()) {
+                ProjectAssignment assignment = new ProjectAssignment();
+                assignment.setUser(userOpt.get());
+                assignment.setProject(projectOpt.get());
+                projectAssignmentRepository.save(assignment);
+            }
+        }
 
     }
 
