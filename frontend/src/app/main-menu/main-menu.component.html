@@ -81,7 +81,7 @@
     <p *ngIf="sickLeaveBalance !== undefined" id="concediu">Zile de concediu medical rămase: {{ sickLeaveBalance }}</p>
     <p *ngIf="unpaidLeaveBalance !== undefined" id="neplatit">Zile de concediu neplatit rămase: {{ unpaidLeaveBalance }}</p>
     <button (click)="goBackToMenu()">Înapoi la meniu</button>
-    
+    <button (click)="toggleShowRequests()">Vezi cererile subordonatilor</button>
     <button (click)="toggleShowForm()">Adaugă cerere</button>
   </div>
   <div *ngIf="showForm" class="section">
@@ -106,6 +106,24 @@
         <button type="submit">Trimite</button>
       </form>
     </div>
+    <div class="section" *ngIf="showRequests">
+  <h3>Cererile subordonatilor</h3>
+  <ul>
+    <li *ngFor="let request of allRequests">
+      <p><strong>Utilizator:</strong> {{ request.userName }}</p>
+      <p><strong>Tip:</strong> {{ request.leaveTypeName }}</p>
+      <p><strong>Perioadă:</strong> {{ formatDate(request.startDate) }} ➔ {{ formatDate(request.endDate) }}</p>
+      <p><strong>Note:</strong> {{ request.notes }}</p>
+      <p><strong>Status:</strong> {{ request.status }}</p>
+      <button *ngIf="request.status === 'PENDING'" (click)="approveLeaveRequest(request.id)">Aproba</button>
+      <button *ngIf="request.status === 'PENDING'" (click)="rejectLeaveRequest(request.id)">Respinge</button>
+    </li>
+  </ul>
+  <div *ngIf="allRequests.length === 0">
+    <p>Nu sunt cereri disponibile.</p>
+  </div>
+</div>
+
 
   </div>
 

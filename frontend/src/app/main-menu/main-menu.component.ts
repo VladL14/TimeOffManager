@@ -87,6 +87,17 @@ export class MainMenuComponent {
     });
     });
   }
+  loadSubordinatesRequests() {
+    const managerId = this.userService.getUser();
+    this.http.get<any[]>(`/api/leaverequests/viewSubordinatesLeaveRequests/${managerId}`).subscribe(data => {
+      this.allRequests = data;
+      this.allRequests.forEach(request => {
+        this.userService.getUserById(request.userId).subscribe(user => {
+          request.userName = user.name;
+        });
+      });
+    });
+  }
 
   goToDashboard() {
     this.showDashboard = true;
@@ -100,6 +111,8 @@ export class MainMenuComponent {
     if (!this.showRequests) {
       if(this.userService.getRole() === 'ADMIN') {
         this.loadAllRequests();
+      }else if(this.userService.getRole() === 'MANAGER') {
+        this.loadSubordinatesRequests();
       }else{
       this.getMyLeaveRequests();
     }
