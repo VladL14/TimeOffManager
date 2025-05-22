@@ -95,6 +95,15 @@ export class MainMenuComponent {
         this.userService.getUserById(request.userId).subscribe(user => {
           request.userName = user.name;
         });
+        this.http.get<any[]>(`/api/projects/user/${request.userId}`).subscribe(projects => {
+          request.projects = projects;
+        
+        projects.forEach(project => {
+          this.http.get<any[]>(`/api/projects/${project.id}/users`).subscribe(users => {
+            project.members = users;
+          });
+        });
+        });
       });
     });
   }
