@@ -1,3 +1,4 @@
+<div id="tot">
 <div class="menu-container">
   <h1 id="titlu">Time-Off Manager</h1>
   <p id="welcome">Welcome, {{ userService.getName() }}</p>
@@ -20,27 +21,27 @@
     <div *ngIf="showForm" class="section">
       <h2>Submit Leave Request</h2>
       <form (submit)="submitNewRequest()">
-        <label>Leave type:</label>
-        <select [(ngModel)]="newLeaveRequest.leaveTypeName" name="leaveTypeName" required>
+        <label><strong>Leave type:</strong></label>
+        <select [(ngModel)]="newLeaveRequest.leaveTypeName" name="leaveTypeName" required id="select">
           <option *ngFor="let type of predefinedLeaveTypes" [value]="type.name">
             {{ type.name }}
           </option>
         </select>
 
-        <label>From:</label>
+        <label><strong>From:</strong></label>
         <input type="date" [(ngModel)]="newLeaveRequest.startDate" name="startDate" required />
 
-        <label>To:</label>
+        <label><strong>To:</strong></label>
         <input type="date" [(ngModel)]="newLeaveRequest.endDate" name="endDate" required />
 
-        <label>Notes:</label>
+        <label><strong>Notes:</strong></label>
         <input type="text" [(ngModel)]="newLeaveRequest.notes" name="notes" />
 
         <button type="submit">Submit</button>
       </form>
     </div>
 
-    <div *ngIf="showRequests && leaveRequests.length > 0" class="section">
+    <div *ngIf="showRequests && leaveRequests.length > 0" class="section" id="viewrequestuser">
       <h2>Your Leave Requests</h2>
       <ul>
         <li *ngFor="let request of leaveRequests">
@@ -56,16 +57,16 @@
       </ul>
     </div>
 
-    <div *ngIf="selectedRequest" class="section">
+    <div *ngIf="selectedRequest" class="section" id="edituser">
       <h2>Edit Request</h2>
       <form (submit)="updateLeaveRequest()">
-        <label>From:</label>
+        <label><strong>From:</strong></label>
         <input type="date" [ngModel]="formatForInput(selectedRequest.startDate)" (ngModelChange)="selectedRequest.startDate = $event" name="editStartDate" required />
 
-        <label>To:</label>
+        <label><strong>To:</strong></label>
         <input type="date" [ngModel]="formatForInput(selectedRequest.endDate)" (ngModelChange)="selectedRequest.endDate = $event" name="editEndDate" required />
 
-        <label>Notes:</label>
+        <label><strong>Notes:</strong></label>
         <input type="text" [(ngModel)]="selectedRequest.notes" name="editNotes" />
 
         <button type="submit">Save</button>
@@ -87,27 +88,27 @@
   <div *ngIf="showForm" class="section">
       <h2>Submit Leave Request</h2>
       <form (submit)="submitNewRequest()">
-        <label>Leave type:</label>
-        <select [(ngModel)]="newLeaveRequest.leaveTypeName" name="leaveTypeName" required>
+        <label><strong>Leave type:</strong></label>
+        <select [(ngModel)]="newLeaveRequest.leaveTypeName" name="leaveTypeName" required id="select">
           <option *ngFor="let type of predefinedLeaveTypes" [value]="type.name">
             {{ type.name }}
           </option>
         </select>
 
-        <label>From:</label>
+        <label><strong>From:</strong></label>
         <input type="date" [(ngModel)]="newLeaveRequest.startDate" name="startDate" required />
 
-        <label>To:</label>
+        <label><strong>To:</strong></label>
         <input type="date" [(ngModel)]="newLeaveRequest.endDate" name="endDate" required />
 
-        <label>Notes:</label>
+        <label><strong>Notes:</strong></label>
         <input type="text" [(ngModel)]="newLeaveRequest.notes" name="notes" />
 
         <button type="submit">Submit</button>
       </form>
     </div>
     <div class="section" *ngIf="showRequests">
-  <h3>Subordinates Requests</h3>
+  <h2>Subordinates Requests</h2>
   <ul>
     <li *ngFor="let request of allRequests">
       <p><strong>User:</strong> {{ request.userName }}</p>
@@ -137,12 +138,10 @@
     <p>No requests available.</p>
   </div>
 </div>
-
-
   </div>
 
   <div *ngIf="userService.getRole() === 'ADMIN'" class="dashboard-container">
-    <h2>Admin Dashboard</h2>
+    
     <div class="actions">
       <button (click)="goBackToMenu()">Back to menu</button>
       <button (click)="toggleShowUsers()">View users</button>
@@ -150,14 +149,14 @@
       <button (click)="toggleShowUserForm()">Add user</button>
   </div>
   <div *ngIf="showUserForm" class="section">
-    <h3>Add User</h3>
+    <h2>Add User</h2>
     <form (submit)="createUser()">
-      <label>Name:</label>
+      <label><strong>Name:</strong></label>
       <input [(ngModel)]="newUser.name" name="name" required>
-      <label>Email:</label>
+      <label><strong>Email:</strong></label>
       <input [(ngModel)]="newUser.email" name="email" required>
-      <label>Role:</label>
-      <select [(ngModel)]="newUser.role" name="role" required>
+      <label><strong>Role:</strong></label>
+      <select [(ngModel)]="newUser.role" name="role" required id="select">
         <option value="USER">USER</option>
         <option value="MANAGER">MANAGER</option>
       </select>
@@ -165,7 +164,7 @@
     </form>
   </div>
       <div class="section" *ngIf="showRequests">
-      <h3>All Leave Requests</h3>
+      <h2>All Leave Requests</h2>
       <ul>
         <li *ngFor="let request of allRequests">
           <p><strong>User:</strong> {{ request.userName }}</p>
@@ -184,20 +183,27 @@
     </div>
 
   </div>
-    <div *ngIf="showUsers" class="section">
-      <h3>Users</h3>
+    <div *ngIf="showUsers" class="section" id="viewusers">
+      <h2>Users</h2>
       <ul>
         <li *ngFor="let user of users">
           <p><strong>Name:</strong> {{ user.name }}</p>
           <p><strong>Role:</strong> {{ user.role }}</p>
           <p><strong>Status:</strong> {{ user.isActive ? 'Active' : 'Inactive' }}</p>
           <div *ngIf="user.isActive">
-          <label>Vacation:</label>
-          <input type="number" [(ngModel)]="user.vacationBalance">
-          <label>Sick:</label>
-          <input type="number" [(ngModel)]="user.sickBalance">
-          <label>Unpaid:</label>
-          <input type="number" [(ngModel)]="user.unpaidBalance">
+          <div class="balance-row">
+            <label><strong>Vacation:</strong></label>
+            <input type="number" [(ngModel)]="user.vacationBalance" />
+          </div>
+          <div class="balance-row">
+            <label><strong>Sick:</strong></label>
+            <input type="number" [(ngModel)]="user.sickBalance" />
+          </div>
+          <div class="balance-row">
+            <label><strong>Unpaid:</strong></label>
+            <input type="number" [(ngModel)]="user.unpaidBalance" />
+          </div>
+
           <button (click)="updateBalances(user.id, user.vacationBalance, user.sickBalance, user.unpaidBalance)">Update balances</button>
           <button (click)="deleteUser(user.id)">Delete user</button>
           </div>
@@ -206,4 +212,5 @@
       </ul>
   </div>
   
+</div>
 </div>

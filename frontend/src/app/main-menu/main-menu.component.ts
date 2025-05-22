@@ -289,15 +289,16 @@ export class MainMenuComponent {
       this.loadUsers();
     });
   }
-  deleteUser(userId: number) {
-    if(confirm('Are you sure you want to delete this user?')){
-      this.http.delete(`/api/users/deleteUser?id=${userId}`).subscribe(() => {
+deleteUser(userId: number) {
+  if (confirm('Are you sure you want to delete this user?')) {
+    this.http.delete(`/api/users/deleteUser?id=${userId}`, { responseType: 'text' })
+      .subscribe(() => {
         alert('User deleted successfully!');
-        
+        this.loadUsers();
       });
-      this.loadUsers();
-    }
   }
+}
+
   updateBalances(userId: number, vacation: number, sickLeave:number, unpaid: number) {
     this.http.put(`/api/leavetypes/user/${userId}/vacation/balance?newBalance=${vacation}`, {}).subscribe();
     this.http.put(`/api/leavetypes/user/${userId}/sick_leave/balance?newBalance=${sickLeave}`, {}).subscribe();
