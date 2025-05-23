@@ -19,4 +19,9 @@ public class ProjectAssignmentController {
     public List<ProjectAssignment> getAllAssignments() {
         return projectAssignmentRepository.findAll();
     }
+
+    @PostMapping
+    public ProjectAssignment addAssignment(@RequestBody ProjectAssignment projectAssignment) {
+        return projectAssignmentRepository.save(projectAssignment);
+    }
 }

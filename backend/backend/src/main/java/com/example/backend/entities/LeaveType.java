@@ -18,9 +18,7 @@ public class LeaveType {
         this.userId = user.getId();
     }
 
-    public LeaveType() {
-
-    }
+    public LeaveType() {}
 
     public void setName(String name)
     {

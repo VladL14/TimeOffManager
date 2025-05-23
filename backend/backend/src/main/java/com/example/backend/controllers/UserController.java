@@ -43,4 +43,9 @@ public class UserController {
         }
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found.");
     }
+
+    @GetMapping("/viewSubordinates/{managerId}")
+    public ResponseEntity<?> getSubordinates(@PathVariable Long managerId) {
+        return userService.getSubordinates(managerId);
+    }
 }

@@ -62,7 +62,7 @@ export class MainMenuComponent {
         this.unpaidLeaveBalance = balance;
       });
 
-    if (this.userService.getRole() === 'MANAGER') {
+    if (this.userService.getRole() === 'ADMIN') {
       this.loadAllRequests();
     }
     });
@@ -87,6 +87,26 @@ export class MainMenuComponent {
     });
     });
   }
+  loadSubordinatesRequests() {
+    const managerId = this.userService.getUser();
+    this.http.get<any[]>(`/api/leaverequests/viewSubordinatesLeaveRequests/${managerId}`).subscribe(data => {
+      this.allRequests = data;
+      this.allRequests.forEach(request => {
+        this.userService.getUserById(request.userId).subscribe(user => {
+          request.userName = user.name;
+        });
+        this.http.get<any[]>(`/api/projects/user/${request.userId}`).subscribe(projects => {
+          request.projects = projects;
+        
+        projects.forEach(project => {
+          this.http.get<any[]>(`/api/projects/${project.id}/users`).subscribe(users => {
+            project.members = users;
+          });
+        });
+        });
+      });
+    });
+  }
 
   goToDashboard() {
     this.showDashboard = true;
@@ -98,8 +118,10 @@ export class MainMenuComponent {
 
   toggleShowRequests() {
     if (!this.showRequests) {
-      if(this.userService.getRole() === 'MANAGER') {
+      if(this.userService.getRole() === 'ADMIN') {
         this.loadAllRequests();
+      }else if(this.userService.getRole() === 'MANAGER') {
+        this.loadSubordinatesRequests();
       }else{
       this.getMyLeaveRequests();
     }
@@ -206,8 +228,8 @@ export class MainMenuComponent {
   }
 
   approveLeaveRequest(requestId: number) {
-    const managerId = this.userService.getUser();
-    this.http.put(`/api/leaverequests/${requestId}/approve?managerId=${managerId}`, {}).subscribe({
+    const currentId = this.userService.getUser();
+    this.http.put(`/api/leaverequests/${requestId}/approve?givenId=${currentId}`, {}).subscribe({
       next: () => {
         alert('Request approved successfully!');
         this.loadAllRequests();
@@ -218,8 +240,8 @@ export class MainMenuComponent {
     });
   }
   rejectLeaveRequest(requestId: number) {
-    const managerId = this.userService.getUser();
-    this.http.put(`/api/leaverequests/${requestId}/reject?managerId=${managerId}`, {}).subscribe({
+    const currentId = this.userService.getUser();
+    this.http.put(`/api/leaverequests/${requestId}/reject?givenId=${currentId}`, {}).subscribe({
       next: () => {
         alert('Request rejected successfully!');
         this.loadAllRequests();
@@ -267,15 +289,16 @@ export class MainMenuComponent {
       this.loadUsers();
     });
   }
-  deleteUser(userId: number) {
-    if(confirm('Are you sure you want to delete this user?')){
-      this.http.delete(`/api/users/deleteUser?id=${userId}`).subscribe(() => {
+deleteUser(userId: number) {
+  if (confirm('Are you sure you want to delete this user?')) {
+    this.http.delete(`/api/users/deleteUser?id=${userId}`, { responseType: 'text' })
+      .subscribe(() => {
         alert('User deleted successfully!');
-        
+        this.loadUsers();
       });
-      this.loadUsers();
-    }
   }
+}
+
   updateBalances(userId: number, vacation: number, sickLeave:number, unpaid: number) {
     this.http.put(`/api/leavetypes/user/${userId}/vacation/balance?newBalance=${vacation}`, {}).subscribe();
     this.http.put(`/api/leavetypes/user/${userId}/sick_leave/balance?newBalance=${sickLeave}`, {}).subscribe();

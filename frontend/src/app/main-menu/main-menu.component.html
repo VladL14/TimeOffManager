@@ -1,3 +1,4 @@
+<div id="tot">
 <div class="menu-container">
   <h1 id="titlu">Time-Off Manager</h1>
   <p id="welcome">Welcome, {{ userService.getName() }}</p>
@@ -9,167 +10,207 @@
 <div *ngIf="showDashboard">
   <div *ngIf="userService.getRole() === 'USER'" class="dashboard-container">
     <div class="actions">
-      <p *ngIf="vacationBalance !== undefined" id="vacanta">Zile de concediu de vacanță rămase: {{ vacationBalance }}</p>
-      <p *ngIf="sickLeaveBalance !== undefined" id="concediu">Zile de concediu medical rămase: {{ sickLeaveBalance }}</p>
-      <p *ngIf="unpaidLeaveBalance !== undefined" id="neplatit">Zile de concediu neplatit rămase: {{ unpaidLeaveBalance }}</p>
-      <button (click)="goBackToMenu()">Înapoi la meniu</button>
-      <button (click)="toggleShowRequests()">Vezi cererile mele</button>
-      <button (click)="toggleShowForm()">Adaugă cerere</button>
+      <p *ngIf="vacationBalance !== undefined" id="vacanta">Remaining vacation days: {{ vacationBalance }}</p>
+      <p *ngIf="sickLeaveBalance !== undefined" id="concediu">Remaining sick leave days: {{ sickLeaveBalance }}</p>
+      <p *ngIf="unpaidLeaveBalance !== undefined" id="neplatit">Remaining unpaid leave days: {{ unpaidLeaveBalance }}</p>
+      <button (click)="goBackToMenu()">Back to menu</button>
+      <button (click)="toggleShowRequests()">View my requests</button>
+      <button (click)="toggleShowForm()">Submit new request</button>
     </div>
 
     <div *ngIf="showForm" class="section">
-      <h2>Adaugă cerere</h2>
+      <h2>Submit Leave Request</h2>
       <form (submit)="submitNewRequest()">
-        <label>Tip concediu:</label>
-        <select [(ngModel)]="newLeaveRequest.leaveTypeName" name="leaveTypeName" required>
+        <label><strong>Leave type:</strong></label>
+        <select [(ngModel)]="newLeaveRequest.leaveTypeName" name="leaveTypeName" required id="select">
           <option *ngFor="let type of predefinedLeaveTypes" [value]="type.name">
             {{ type.name }}
           </option>
         </select>
 
-        <label>De la:</label>
+        <label><strong>From:</strong></label>
         <input type="date" [(ngModel)]="newLeaveRequest.startDate" name="startDate" required />
 
-        <label>Până la:</label>
+        <label><strong>To:</strong></label>
         <input type="date" [(ngModel)]="newLeaveRequest.endDate" name="endDate" required />
 
-        <label>Note:</label>
+        <label><strong>Notes:</strong></label>
         <input type="text" [(ngModel)]="newLeaveRequest.notes" name="notes" />
 
-        <button type="submit">Trimite</button>
+        <button type="submit">Submit</button>
       </form>
     </div>
 
-    <div *ngIf="showRequests && leaveRequests.length > 0" class="section">
-      <h2>Cererile tale</h2>
+    <div *ngIf="showRequests && leaveRequests.length > 0" class="section" id="viewrequestuser">
+      <h2>Your Leave Requests</h2>
       <ul>
         <li *ngFor="let request of leaveRequests">
-            <p><strong>Tip:</strong>
+            <p><strong>Type:</strong>
             {{request.leaveTypeName}}
           </p>
-          <p><strong>Perioadă:</strong> {{ formatDate(request.startDate) }} ➔ {{ formatDate(request.endDate) }}</p>
+          <p><strong>Period:</strong> {{ formatDate(request.startDate) }} ➔ {{ formatDate(request.endDate) }}</p>
           <p><strong>Status:</strong> {{ request.status }}</p>
-          <p><strong>Note:</strong> {{ request.notes }}</p>
-          <button (click)="selectRequestForEdit(request)">Editeaza</button>
+          <p><strong>Notes:</strong> {{ request.notes }}</p>
+          <button (click)="selectRequestForEdit(request)">Edit</button>
           <hr />
         </li>
       </ul>
     </div>
 
-    <div *ngIf="selectedRequest" class="section">
-      <h2>Editeaza cererea</h2>
+    <div *ngIf="selectedRequest" class="section" id="edituser">
+      <h2>Edit Request</h2>
       <form (submit)="updateLeaveRequest()">
-        <label>De la:</label>
+        <label><strong>From:</strong></label>
         <input type="date" [ngModel]="formatForInput(selectedRequest.startDate)" (ngModelChange)="selectedRequest.startDate = $event" name="editStartDate" required />
 
-        <label>Până la:</label>
+        <label><strong>To:</strong></label>
         <input type="date" [ngModel]="formatForInput(selectedRequest.endDate)" (ngModelChange)="selectedRequest.endDate = $event" name="editEndDate" required />
 
-        <label>Note:</label>
+        <label><strong>Notes:</strong></label>
         <input type="text" [(ngModel)]="selectedRequest.notes" name="editNotes" />
 
-        <button type="submit">Salveaza</button>
-        <button type="button" (click)="deleteLeaveRequest(selectedRequest.id)" class="btn-delete">Sterge</button>
-        <button type="button" (click)="cancelEdit()">Inchide</button>
+        <button type="submit">Save</button>
+        <button type="button" (click)="deleteLeaveRequest(selectedRequest.id)" class="btn-delete">Delete</button>
+        <button type="button" (click)="cancelEdit()">Close</button>
       </form>
     </div>
   </div>
 
   <div *ngIf="userService.getRole() === 'MANAGER'" class="dashboard-container">
   <div class="actions">
-    <p *ngIf="vacationBalance !== undefined" id="vacanta">Zile de concediu de vacanță rămase: {{ vacationBalance }}</p>
-    <p *ngIf="sickLeaveBalance !== undefined" id="concediu">Zile de concediu medical rămase: {{ sickLeaveBalance }}</p>
-    <p *ngIf="unpaidLeaveBalance !== undefined" id="neplatit">Zile de concediu neplatit rămase: {{ unpaidLeaveBalance }}</p>
-    <button (click)="goBackToMenu()">Înapoi la meniu</button>
-    <button (click)="toggleShowRequests()">Vezi toate cererile</button>
-    <button (click)="toggleShowForm()">Adaugă cerere</button>
+    <p *ngIf="vacationBalance !== undefined" id="vacanta">Remaining vacation days: {{ vacationBalance }}</p>
+    <p *ngIf="sickLeaveBalance !== undefined" id="concediu">Remaining sick leave days: {{ sickLeaveBalance }}</p>
+    <p *ngIf="unpaidLeaveBalance !== undefined" id="neplatit">Remaining unpaid leave days: {{ unpaidLeaveBalance }}</p>
+    <button (click)="goBackToMenu()">Back to menu</button>
+    <button (click)="toggleShowRequests()">View subordinates requests</button>
+    <button (click)="toggleShowForm()">Submit new request</button>
   </div>
   <div *ngIf="showForm" class="section">
-      <h2>Adaugă cerere</h2>
+      <h2>Submit Leave Request</h2>
       <form (submit)="submitNewRequest()">
-        <label>Tip concediu:</label>
-        <select [(ngModel)]="newLeaveRequest.leaveTypeName" name="leaveTypeName" required>
+        <label><strong>Leave type:</strong></label>
+        <select [(ngModel)]="newLeaveRequest.leaveTypeName" name="leaveTypeName" required id="select">
           <option *ngFor="let type of predefinedLeaveTypes" [value]="type.name">
             {{ type.name }}
           </option>
         </select>
 
-        <label>De la:</label>
+        <label><strong>From:</strong></label>
         <input type="date" [(ngModel)]="newLeaveRequest.startDate" name="startDate" required />
 
-        <label>Până la:</label>
+        <label><strong>To:</strong></label>
         <input type="date" [(ngModel)]="newLeaveRequest.endDate" name="endDate" required />
 
-        <label>Note:</label>
+        <label><strong>Notes:</strong></label>
         <input type="text" [(ngModel)]="newLeaveRequest.notes" name="notes" />
 
-        <button type="submit">Trimite</button>
+        <button type="submit">Submit</button>
       </form>
     </div>
     <div class="section" *ngIf="showRequests">
-      <h3>Cererile urilizatorilor</h3>
-      <ul>
-        <li *ngFor="let request of allRequests">
-          <p><strong>Utilizator:</strong> {{ request.userName }}</p>
-          <p><strong>Tip:</strong>
-            {{request.leaveTypeName}}
-          </p>
-          <p><strong>Perioadă:</strong> {{ formatDate(request.startDate) }} ➔ {{ formatDate(request.endDate) }}</p>
-          <p><strong>Note:</strong> {{ request.notes }}</p>
-          <p><strong>Status:</strong> {{ request.status }}</p>
-          <button *ngIf="request.status === 'PENDING'" (click)="approveLeaveRequest(request.id)">Aproba</button>
-          <button *ngIf="request.status === 'PENDING'" (click)="rejectLeaveRequest(request.id)">Respinge</button>
-        </li>
-      </ul>
-      <div *ngIf="allRequests.length === 0">
-        <p>Nu sunt cereri de concediu pentru aprobat.</p>
-    </div>
-
+  <h2>Subordinates Requests</h2>
+  <ul>
+    <li *ngFor="let request of allRequests">
+      <p><strong>User:</strong> {{ request.userName }}</p>
+      <p><strong>Type:</strong> {{ request.leaveTypeName }}</p>
+      <p><strong>Period:</strong> {{ formatDate(request.startDate) }} ➔ {{ formatDate(request.endDate) }}</p>
+      <p><strong>Notes:</strong> {{ request.notes }}</p>
+      <p><strong>Status:</strong> {{ request.status }}</p>
+      <div *ngIf="request.projects && request.projects.length > 0">
+            <p><strong>Projects:</strong></p>
+            <ul>
+              <li *ngFor="let project of request.projects">
+                <p><strong>{{ project.name }}</strong></p>
+                <p>Members:</p>
+                <ul *ngIf="project.members && project.members.length > 0">
+                  <li *ngFor="let member of project.members">
+                    {{ member.name }}
+                  </li>
+                </ul>
+              </li>
+            </ul>
+          </div>
+      <button *ngIf="request.status === 'PENDING'" (click)="approveLeaveRequest(request.id)">Approve</button>
+      <button *ngIf="request.status === 'PENDING'" (click)="rejectLeaveRequest(request.id)">Reject</button>
+    </li>
+  </ul>
+  <div *ngIf="allRequests.length === 0">
+    <p>No requests available.</p>
   </div>
+</div>
   </div>
 
   <div *ngIf="userService.getRole() === 'ADMIN'" class="dashboard-container">
-    <h2>Dashboard Admin</h2>
+    
     <div class="actions">
-      <button (click)="goBackToMenu()">Înapoi la meniu</button>
-      <button (click)="toggleShowUsers()">Vezi utilizatori</button>
-      <button (click)="toggleShowUserForm()">Adaugă utilizator</button>
+      <button (click)="goBackToMenu()">Back to menu</button>
+      <button (click)="toggleShowUsers()">View users</button>
+      <button (click)="toggleShowRequests()">View all requests</button>
+      <button (click)="toggleShowUserForm()">Add user</button>
   </div>
   <div *ngIf="showUserForm" class="section">
-    <h3>Adaugă utilizator</h3>
+    <h2>Add User</h2>
     <form (submit)="createUser()">
-      <label>Nume:</label>
+      <label><strong>Name:</strong></label>
       <input [(ngModel)]="newUser.name" name="name" required>
-      <label>Email:</label>
+      <label><strong>Email:</strong></label>
       <input [(ngModel)]="newUser.email" name="email" required>
-      <label>Rol:</label>
-      <select [(ngModel)]="newUser.role" name="role" required>
+      <label><strong>Role:</strong></label>
+      <select [(ngModel)]="newUser.role" name="role" required id="select">
         <option value="USER">USER</option>
         <option value="MANAGER">MANAGER</option>
       </select>
-      <button type="submit">Creeaza</button>
+      <button type="submit">Create</button>
     </form>
   </div>
-    <div *ngIf="showUsers" class="section">
-      <h3>Utilizatori</h3>
+      <div class="section" *ngIf="showRequests">
+      <h2>All Leave Requests</h2>
+      <ul>
+        <li *ngFor="let request of allRequests">
+          <p><strong>User:</strong> {{ request.userName }}</p>
+          <p><strong>Type:</strong>
+            {{request.leaveTypeName}}
+          </p>
+          <p><strong>Period:</strong> {{ formatDate(request.startDate) }} ➔ {{ formatDate(request.endDate) }}</p>
+          <p><strong>Notes:</strong> {{ request.notes }}</p>
+          <p><strong>Status:</strong> {{ request.status }}</p>
+          <button *ngIf="request.status === 'PENDING'" (click)="approveLeaveRequest(request.id)">Approve</button>
+          <button *ngIf="request.status === 'PENDING'" (click)="rejectLeaveRequest(request.id)">Reject</button>
+        </li>
+      </ul>
+      <div *ngIf="allRequests.length === 0">
+        <p>No leave requests to approve.</p>
+    </div>
+
+  </div>
+    <div *ngIf="showUsers" class="section" id="viewusers">
+      <h2>Users</h2>
       <ul>
         <li *ngFor="let user of users">
-          <p><strong>Nume:</strong> {{ user.name }}</p>
-          <p><strong>Rol:</strong> {{ user.role }}</p>
-          <p><strong>Status:</strong> {{ user.isActive ? 'Activ' : 'Inactiv' }}</p>
+          <p><strong>Name:</strong> {{ user.name }}</p>
+          <p><strong>Role:</strong> {{ user.role }}</p>
+          <p><strong>Status:</strong> {{ user.isActive ? 'Active' : 'Inactive' }}</p>
           <div *ngIf="user.isActive">
-          <label>Vacanță:</label>
-          <input type="number" [(ngModel)]="user.vacationBalance">
-          <label>Medical:</label>
-          <input type="number" [(ngModel)]="user.sickBalance">
-          <label>Neplătit:</label>
-          <input type="number" [(ngModel)]="user.unpaidBalance">
-          <button (click)="updateBalances(user.id, user.vacationBalance, user.sickBalance, user.unpaidBalance)">Modifica balantele</button>
-          <button (click)="deleteUser(user.id)">Sterge utilizator</button>
+          <div class="balance-row">
+            <label><strong>Vacation:</strong></label>
+            <input type="number" [(ngModel)]="user.vacationBalance" />
+          </div>
+          <div class="balance-row">
+            <label><strong>Sick:</strong></label>
+            <input type="number" [(ngModel)]="user.sickBalance" />
+          </div>
+          <div class="balance-row">
+            <label><strong>Unpaid:</strong></label>
+            <input type="number" [(ngModel)]="user.unpaidBalance" />
+          </div>
+
+          <button (click)="updateBalances(user.id, user.vacationBalance, user.sickBalance, user.unpaidBalance)">Update balances</button>
+          <button (click)="deleteUser(user.id)">Delete user</button>
           </div>
 
         </li>
       </ul>
   </div>
   
+</div>
 </div>

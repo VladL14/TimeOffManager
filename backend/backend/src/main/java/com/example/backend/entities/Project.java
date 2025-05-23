@@ -1,6 +1,7 @@
 package com.example.backend.entities;
 
 import jakarta.persistence.*;
+import java.util.List;
 
 @Entity
 @Table(name = "projects")
@@ -11,6 +12,11 @@ public class Project {
     private String name;
     private String description;
     private int managerId;
+
+    @OneToMany(mappedBy = "project", fetch = FetchType.LAZY)
+    private List<ProjectAssignment> assignments;
+
+    public int getId() { return id; }
 
     public void setName(String name) {
         this.name = name;
