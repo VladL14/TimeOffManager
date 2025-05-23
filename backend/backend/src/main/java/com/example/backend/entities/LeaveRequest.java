@@ -11,6 +11,7 @@ public class LeaveRequest {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    @Enumerated(EnumType.STRING)
     private RequestStatus status;
     private String notes;
     private int userId;
