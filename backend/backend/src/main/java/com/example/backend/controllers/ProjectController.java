@@ -38,4 +38,9 @@ public class ProjectController {
     public Project addProject(@RequestBody Project project) {
         return projectRepository.save(project);
     }
+
+    @PostMapping("/direct")
+    public ResponseEntity<?> createProject(@RequestBody Project project) {
+        return projectService.createProject(project);
+    }
 }

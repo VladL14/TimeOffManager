@@ -12,7 +12,7 @@ import org.springframework.expression.spel.ast.OpAnd;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.PathVariable;
+
 
 import java.util.*;
 
@@ -35,7 +35,7 @@ public class UserService {
         return userRepository.findAll();
     }
 
-    public User getUserById(@PathVariable Long id)
+    public User getUserById(Long id)
     {
         return userRepository.findById(id).get();
     }
