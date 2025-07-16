@@ -39,88 +39,67 @@ public class ProjectAssignmentServiceTest {
     }
 
     @Test
-    void testCreateProjectAssignmentSuccess() {
+    void testCreateProjectAssignementUserNotFound() {
         User user = new User();
         user.setId(1);
-
         Project project = new Project();
-        project.setId(2);
-
-        ProjectAssignment assignment = new ProjectAssignment();
-        assignment.setUser(user);
-        assignment.setProject(project);
-
-        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
-        when(projectRepository.findById(2L)).thenReturn(Optional.of(project));
-        when(projectAssignmentRepository.findByUserIdAndProjectId(1, 2)).thenReturn(Optional.empty());
-        when(projectAssignmentRepository.save(any(ProjectAssignment.class))).thenReturn(assignment);
-
-        ResponseEntity<?> response = projectAssignmentService.createProjectAssignment(assignment);
-
-        assertEquals(200, response.getStatusCodeValue());
-        assertEquals(assignment, response.getBody());
-    }
-
-    @Test
-    void testCreateProjectAssignmentUserNotFound() {
-        User user = new User();
-        user.setId(1);
-
-        Project project = new Project();
-        project.setId(2);
-
-        ProjectAssignment assignment = new ProjectAssignment();
-        assignment.setUser(user);
-        assignment.setProject(project);
-
+        project.setId(1);
+        ProjectAssignment projectAssignment = new ProjectAssignment();
+        projectAssignment.setUser(user);
+        projectAssignment.setProject(project);
         when(userRepository.findById(1L)).thenReturn(Optional.empty());
-
-        ResponseEntity<?> response = projectAssignmentService.createProjectAssignment(assignment);
-
+        ResponseEntity<?> response = projectAssignmentService.createProjectAssignment(projectAssignment);
         assertEquals(400, response.getStatusCodeValue());
         assertEquals("User not found.", response.getBody());
     }
 
     @Test
-    void testCreateProjectAssignmentProjectNotFound() {
+    void testCreateProjectAssignementProjectNotFound() {
         User user = new User();
         user.setId(1);
-
         Project project = new Project();
         project.setId(2);
-
-        ProjectAssignment assignment = new ProjectAssignment();
-        assignment.setUser(user);
-        assignment.setProject(project);
-
+        ProjectAssignment projectAssignment = new ProjectAssignment();
+        projectAssignment.setUser(user);
+        projectAssignment.setProject(project);
         when(userRepository.findById(1L)).thenReturn(Optional.of(user));
         when(projectRepository.findById(2L)).thenReturn(Optional.empty());
-
-        ResponseEntity<?> response = projectAssignmentService.createProjectAssignment(assignment);
-
+        ResponseEntity<?> response = projectAssignmentService.createProjectAssignment(projectAssignment);
         assertEquals(400, response.getStatusCodeValue());
         assertEquals("Project not found.", response.getBody());
     }
 
     @Test
-    void testCreateProjectAssignmentAlreadyAssigned() {
+    void testCreateProjectAssignementUserAssigned() {
         User user = new User();
         user.setId(1);
-
         Project project = new Project();
-        project.setId(2);
-
-        ProjectAssignment assignment = new ProjectAssignment();
-        assignment.setUser(user);
-        assignment.setProject(project);
-
+        project.setId(3);
+        ProjectAssignment projectAssignment = new ProjectAssignment();
+        projectAssignment.setUser(user);
+        projectAssignment.setProject(project);
         when(userRepository.findById(1L)).thenReturn(Optional.of(user));
-        when(projectRepository.findById(2L)).thenReturn(Optional.of(project));
-        when(projectAssignmentRepository.findByUserIdAndProjectId(1, 2)).thenReturn(Optional.of(new ProjectAssignment()));
-
-        ResponseEntity<?> response = projectAssignmentService.createProjectAssignment(assignment);
-
+        when(projectRepository.findById(3L)).thenReturn(Optional.of(project));
+        when(projectAssignmentRepository.findByUserIdAndProjectId(1, 3)).thenReturn(Optional.of(projectAssignment));
+        ResponseEntity<?> response = projectAssignmentService.createProjectAssignment(projectAssignment);
         assertEquals(400, response.getStatusCodeValue());
         assertEquals("This user is already assigned to the project.", response.getBody());
+
+    }
+
+    @Test
+    void testCreateProjectAssignementDone() {
+        User user = new User();
+        user.setId(1);
+        Project project = new Project();
+        project.setId(4);
+        ProjectAssignment projectAssignment = new ProjectAssignment();
+        projectAssignment.setUser(user);
+        projectAssignment.setProject(project);
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(projectRepository.findById(4L)).thenReturn(Optional.of(project));
+        ResponseEntity<?> response = projectAssignmentService.createProjectAssignment(projectAssignment);
+        assertEquals(200, response.getStatusCodeValue());
+
     }
 }

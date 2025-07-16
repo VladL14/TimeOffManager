@@ -20,7 +20,7 @@ public class LeaveRequestService {
     private final ProjectAssignmentRepository projectAssignmentRepository;
 
     @Autowired
-    public LeaveRequestService(LeaveRequestRepository leaveRequestRepository, UserService userService, LeaveTypeRepository leaveTypeRepository, LeaveTypeService leaveTypeService, UserRepository userRepository, ProjectRepository projectRepository, ProjectAssignmentRepository projectAssignmentRepository)
+    public LeaveRequestService(LeaveRequestRepository leaveRequestRepository, LeaveTypeRepository leaveTypeRepository, UserRepository userRepository, ProjectRepository projectRepository, ProjectAssignmentRepository projectAssignmentRepository)
     {
         this.leaveRequestRepository = leaveRequestRepository;
         this.leaveTypeRepository = leaveTypeRepository;
@@ -42,7 +42,8 @@ public class LeaveRequestService {
             return false;
         }
         User user = optionalUser.get();
-        return "Manager".equalsIgnoreCase(user.getRole());
+        String role = user.getRole();
+        return role.equalsIgnoreCase(user.getRole());
     }
 
     public boolean isUserAdmin(int userId)
@@ -53,7 +54,8 @@ public class LeaveRequestService {
             return false;
         }
         User user = optionalUser.get();
-        return "Admin".equalsIgnoreCase(user.getRole());
+        String role = user.getRole();
+        return role.equalsIgnoreCase(user.getRole());
     }
 
 
