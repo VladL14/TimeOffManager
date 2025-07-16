@@ -7,18 +7,18 @@ import com.example.backend.repositories.UserRepository;
 import com.example.backend.services.LeaveTypeService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
+
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 import org.springframework.http.ResponseEntity;
-import org.mockito.junit.jupiter.MockitoExtension;
+
 
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-@ExtendWith(MockitoExtension.class)
 public class LeaveTypeServiceTest {
 
     @Mock
@@ -32,8 +32,12 @@ public class LeaveTypeServiceTest {
 
     private User activeUser;
 
+    private final String VACATION = "Vacation";
+
     @BeforeEach
     void setUp() {
+        MockitoAnnotations.initMocks(this);
+
         activeUser = new User();
         activeUser.setId(1);
         activeUser.setIsActive(true);
@@ -41,23 +45,23 @@ public class LeaveTypeServiceTest {
 
     @Test
     void testGetOrCreateLeaveType_ReturnsExisting() {
-        LeaveType leaveType = new LeaveType("Vacation", 21, activeUser);
-        when(leaveTypeRepository.findByUserIdAndName(1, "Vacation")).thenReturn(Optional.of(leaveType));
+        LeaveType leaveType = new LeaveType(VACATION, 21, activeUser);
+        when(leaveTypeRepository.findByUserIdAndName(1, VACATION)).thenReturn(Optional.of(leaveType));
 
-        LeaveType result = leaveTypeService.getOrCreateLeaveType(1, "Vacation", 21);
+        LeaveType result = leaveTypeService.getOrCreateLeaveType(1, VACATION, 21);
 
         assertEquals(leaveType, result);
     }
 
     @Test
     void testGetOrCreateLeaveType_CreatesNew() {
-        when(leaveTypeRepository.findByUserIdAndName(1, "Vacation")).thenReturn(Optional.empty());
+        when(leaveTypeRepository.findByUserIdAndName(1, VACATION)).thenReturn(Optional.empty());
         when(userRepository.findById(1L)).thenReturn(Optional.of(activeUser));
         when(leaveTypeRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
-        LeaveType result = leaveTypeService.getOrCreateLeaveType(1, "Vacation", 21);
+        LeaveType result = leaveTypeService.getOrCreateLeaveType(1, VACATION, 21);
 
-        assertEquals("Vacation", result.getName());
+        assertEquals(VACATION, result.getName());
         assertEquals(21, result.getBalanceDays());
       }
 
@@ -77,9 +81,9 @@ public class LeaveTypeServiceTest {
 
     @Test
     void testGetVacationBalance_ActiveUser() {
-        LeaveType leaveType = new LeaveType("Vacation", 21, activeUser);
+        LeaveType leaveType = new LeaveType(VACATION, 21, activeUser);
         when(userRepository.findById(1L)).thenReturn(Optional.of(activeUser));
-        when(leaveTypeRepository.findByUserIdAndName(1, "Vacation")).thenReturn(Optional.of(leaveType));
+        when(leaveTypeRepository.findByUserIdAndName(1, VACATION)).thenReturn(Optional.of(leaveType));
 
         int balance = leaveTypeService.getVacationBalance(1);
         assertEquals(21, balance);
@@ -96,9 +100,9 @@ public class LeaveTypeServiceTest {
 
     @Test
     void testSetVacationBalance_Success() {
-        LeaveType leaveType = new LeaveType("Vacation", 21, activeUser);
+        LeaveType leaveType = new LeaveType(VACATION, 21, activeUser);
         when(userRepository.findById(1L)).thenReturn(Optional.of(activeUser));
-        when(leaveTypeRepository.findByUserIdAndName(1, "Vacation")).thenReturn(Optional.of(leaveType));
+        when(leaveTypeRepository.findByUserIdAndName(1, VACATION)).thenReturn(Optional.of(leaveType));
 
         ResponseEntity<?> response = leaveTypeService.setVacationBalance(1, 25);
         assertEquals(200, response.getStatusCodeValue());
@@ -117,7 +121,7 @@ public class LeaveTypeServiceTest {
     @Test
     void testSetVacationBalance_NoLeaveType() {
         when(userRepository.findById(1L)).thenReturn(Optional.of(activeUser));
-        when(leaveTypeRepository.findByUserIdAndName(1, "Vacation")).thenReturn(Optional.empty());
+        when(leaveTypeRepository.findByUserIdAndName(1, VACATION)).thenReturn(Optional.empty());
 
         ResponseEntity<?> response = leaveTypeService.setVacationBalance(1, 25);
         assertEquals(400, response.getStatusCodeValue());
