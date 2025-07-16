@@ -1,15 +1,13 @@
 package com.example.backend;
 
-import com.example.backend.RequestStatus;
 import com.example.backend.entities.*;
 import com.example.backend.repositories.*;
 import com.example.backend.services.LeaveRequestService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.MockitoAnnotations;
 import org.springframework.http.ResponseEntity;
 
 import java.util.*;
@@ -19,7 +17,6 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
-@ExtendWith(MockitoExtension.class)
 public class LeaveRequestServiceTest {
 
     @Mock
@@ -33,19 +30,12 @@ public class LeaveRequestServiceTest {
     @Mock
     private ProjectAssignmentRepository projectAssignmentRepository;
 
+    @InjectMocks
     private LeaveRequestService leaveRequestService;
 
     @BeforeEach
     void setUp() {
-        leaveRequestService = new LeaveRequestService(
-                leaveRequestRepository,
-                null,
-                leaveTypeRepository,
-                null,
-                userRepository,
-                projectRepository,
-                projectAssignmentRepository
-        );
+        MockitoAnnotations.openMocks(this);
     }
 
     @Test
@@ -112,6 +102,7 @@ public class LeaveRequestServiceTest {
         when(leaveRequestRepository.save(any())).thenAnswer(i -> i.getArgument(0));
 
         ResponseEntity<?> response = leaveRequestService.approveLeaveRequest(1L, managerId);
+        assertEquals(7, leaveType.getBalanceDays());
         assertEquals(200, response.getStatusCodeValue());
         assertEquals(RequestStatus.APPROVED, ((LeaveRequest) response.getBody()).getStatus());
     }

@@ -54,10 +54,12 @@ class ProjectServiceTest {
         project.setManagerId(2);
         project.setDescription("descriere");
         project.setName("nume");
+
         User user = new User();
         user.setId(2);
         user.setRole("User");
-        // simulam existebta user
+        // simulam existenta user
+
         when(userRepository.findById(2L)).thenReturn(Optional.of(user));
         ResponseEntity<?> response = projectService.createProject(project);
         assertEquals(400, response.getStatusCodeValue());
