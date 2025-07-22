@@ -4,6 +4,7 @@ import { of } from 'rxjs';
 
 import { MainMenuComponent } from './main-menu.component';
 import { UserService } from '../user.service';
+import { HttpClient } from '@angular/common/http';
 
 describe('MainMenuComponent', () => {
   let component: MainMenuComponent;
@@ -33,6 +34,69 @@ describe('MainMenuComponent', () => {
   afterEach(() => {
     httpMock.verify();
   });
+
+  it('should create the component', () => {
+      setupTestBed('USER');
+      expect(component).toBeTruthy();
+    });
+
+    it('should hide dashboard and forms on goBackToMenu()', () => {
+      setupTestBed('USER');
+      component.showDashboard = true;
+      component.showForm = true;
+      component.showRequests = true;
+      component.goBackToMenu();
+      expect(component.showDashboard).toBeFalse();
+      expect(component.showForm).toBeFalse();
+      expect(component.showRequests).toBeFalse();
+    });
+
+    it('should show the dashboard after clicking the goToDashboard() button', () => {
+      setupTestBed('USER');
+      component.goToDashboard();
+      expect(component.showDashboard).toBeTrue();
+    });
+
+    it('should toggle showForm', () => {
+      setupTestBed('USER');
+      component.showForm = false;
+      component.toggleShowForm();
+      expect(component.showForm).toBeTrue();
+    });
+
+it('should load all requests and set usernames on loadAllRequests()', fakeAsync(() => {
+    setupTestBed('ADMIN');
+    const mockRequest = [{userId:1}];
+    const mockUser = { name: 'Test'};
+    const http = TestBed.inject(HttpClient) as HttpClient;
+    spyOn(http, 'get').and.returnValue(of(mockRequest));
+    spyOn(component.userService, 'getUserById').and.returnValue(of(mockUser));
+    component.loadAllRequests();
+    expect(component.allRequests[0].userName).toBe('Test');
+  }));
+it('should show user form when click toggleShowUserForm()', () => {
+    setupTestBed('ADMIN');
+    component.showUserForm = false;
+    component.toggleShowUserForm();
+    expect(component.showUserForm).toBeTrue();
+  });
+
+  it('should set selectedRequest on selectRequestForEdit()', () => {
+    setupTestBed('USER');
+    const mockRequest = { id: 1, leaveTypeName: 'Vacation', startDate: '2025-11-01', endDate: '2025-11-05', notes: 'Test', status: 'PENDING', userId: 2 };
+    component.selectRequestForEdit(mockRequest);
+    expect(component.selectedRequest).toEqual(mockRequest);
+  });
+
+  it('should clear selectedRequest on cancelEdit()', () => {
+    setupTestBed('USER');
+    component.selectedRequest = { id: 1, leaveTypeName: 'Vacation', startDate: '2025-11-01', endDate: '2025-11-05', notes: 'Test', status: 'PENDING', userId: 2 };
+    component.cancelEdit();
+    expect(component.selectedRequest).toBeNull();
+  });
+
+
+
 
   describe('as a USER', () => {
     beforeEach(() => setupTestBed('USER'));
