@@ -41,23 +41,24 @@
       </form>
     </div>
 
-    <div *ngIf="showRequests && leaveRequests.length > 0" class="section" id="viewrequestuser">
-      <h2>Your Leave Requests</h2>
-      <ul>
-        <li *ngFor="let request of leaveRequests">
-            <p><strong>Type:</strong>
-            {{request.leaveTypeName}}
-          </p>
-          <p><strong>Period:</strong> {{ formatDate(request.startDate) }} ➔ {{ formatDate(request.endDate) }}</p>
-          <p><strong>Status:</strong> {{ request.status }}</p>
-          <p><strong>Notes:</strong> {{ request.notes }}</p>
-          <button (click)="selectRequestForEdit(request)">Edit</button>
-          <hr />
-        </li>
-      </ul>
-    </div>
+    <div *ngIf="showRequests && (leaveRequests$ | async) as leaveRequests">
+  <div *ngIf="leaveRequests.length > 0" class="section" id="viewrequestuser">
+    <h2>Your Leave Requests</h2>
+    <ul>
+      <li *ngFor="let request of leaveRequests">
+        <p><strong>Type:</strong> {{ request.leaveTypeName }}</p>
+        <p><strong>Period:</strong> {{ formatDate(request.startDate) }} ➔ {{ formatDate(request.endDate) }}</p>
+        <p><strong>Status:</strong> {{ request.status }}</p>
+        <p><strong>Notes:</strong> {{ request.notes }}</p>
+        <button (click)="selectRequestForEdit(request)">Edit</button>
+        <hr />
+      </li>
+    </ul>
+  </div>
+</div>
 
-    <div *ngIf="selectedRequest" class="section" id="edituser">
+
+    <div *ngIf="selectedRequest$ | async as selectedRequest" class="section" id="edituser">
       <h2>Edit Request</h2>
       <form (submit)="updateLeaveRequest()">
         <label><strong>From:</strong></label>
@@ -110,7 +111,7 @@
     <div class="section" *ngIf="showRequests">
   <h2>Subordinates Requests</h2>
   <ul>
-    <li *ngFor="let request of allRequests">
+    <li *ngFor="let request of allRequests$ | async">
       <p><strong>User:</strong> {{ request.userName }}</p>
       <p><strong>Type:</strong> {{ request.leaveTypeName }}</p>
       <p><strong>Period:</strong> {{ formatDate(request.startDate) }} ➔ {{ formatDate(request.endDate) }}</p>
@@ -134,7 +135,7 @@
       <button *ngIf="request.status === 'PENDING'" (click)="rejectLeaveRequest(request.id)">Reject</button>
     </li>
   </ul>
-  <div *ngIf="allRequests.length === 0">
+  <div *ngIf="(allRequests$ | async)?.length === 0">
     <p>No requests available.</p>
   </div>
 </div>
@@ -166,7 +167,7 @@
       <div class="section" *ngIf="showRequests">
       <h2>All Leave Requests</h2>
       <ul>
-        <li *ngFor="let request of allRequests">
+        <li *ngFor="let request of allRequests$ | async">
           <p><strong>User:</strong> {{ request.userName }}</p>
           <p><strong>Type:</strong>
             {{request.leaveTypeName}}
@@ -178,7 +179,7 @@
           <button *ngIf="request.status === 'PENDING'" (click)="rejectLeaveRequest(request.id)">Reject</button>
         </li>
       </ul>
-      <div *ngIf="allRequests.length === 0">
+      <div *ngIf="(allRequests$ | async)?.length === 0">
         <p>No leave requests to approve.</p>
     </div>
 

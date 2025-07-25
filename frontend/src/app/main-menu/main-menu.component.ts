@@ -1,18 +1,24 @@
 import { Component } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { UserService} from '../user.service';
-import { NgIf, NgForOf } from '@angular/common';
+import { AsyncPipe, NgIf, NgForOf } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
+import { Select, Store } from '@ngxs/store';
+import { MainMenuState } from '../state/main-menu.state';
+import { Observable } from 'rxjs';
+import { SetAllRequests, SetLeaveRequests, SetSelectedRequest } from '../state/main-menu.actions';
 
 @Component({
   selector: 'app-main-menu',
   standalone: true,
-  imports: [NgIf, NgForOf, FormsModule, RouterModule],
+  imports: [NgIf, NgForOf, FormsModule, RouterModule, AsyncPipe],
   templateUrl: './main-menu.component.html',
   styleUrl: './main-menu.component.scss'
 })
+
 export class MainMenuComponent {
+
   vacationBalance: number | undefined;
   sickLeaveBalance: number | undefined;
   unpaidLeaveBalance: number | undefined;
@@ -22,9 +28,9 @@ export class MainMenuComponent {
   users: any[] = [];
   showUsers = false;
   showUserForm = false;
-  leaveRequests: any[] = [];
-  allRequests: any[] = [];
-  selectedRequest: any = null;
+  leaveRequests$: Observable<any[]>;
+  selectedRequest$: Observable<any | null>;
+  allRequests$: Observable<any[]>;
 
   newUser = {
     name: '',
@@ -48,8 +54,13 @@ export class MainMenuComponent {
 
   constructor(
     public userService: UserService,
-    private http: HttpClient
-  ) {}
+    private http: HttpClient,
+    private store: Store
+  ) {  
+    this.leaveRequests$ = this.store.select(MainMenuState.getLeaveRequests);
+    this.selectedRequest$ = this.store.select(MainMenuState.getSelectedRequest);
+    this.allRequests$ = this.store.select(MainMenuState.getAllRequests);
+  }
   ngOnInit() {
     this.userService.loadUser().subscribe(() => {
       this.userService.getVacationBalance(this.userService.getUser()).subscribe(balance => {
@@ -73,25 +84,24 @@ export class MainMenuComponent {
   this.showDashboard = false;
   this.showForm = false;
   this.showRequests = false;
-  this.selectedRequest = null;
-  this.leaveRequests = [];
-}
+  this.store.dispatch([ new SetLeaveRequests([]), new SetSelectedRequest(null) ]);
+  }
+
 
   loadAllRequests() {
-    this.http.get<any[]>('/api/leaverequests').subscribe(data => {
-      this.allRequests = data;
-      this.allRequests.forEach(request => {
+    this.http.get<any[]>('/api/leaverequests').subscribe(requests => {
+      requests.forEach(request => {
       this.userService.getUserById(request.userId).subscribe(user => {
         request.userName = user.name;
       });
     });
+    this.store.dispatch(new SetAllRequests(requests));
     });
   }
   loadSubordinatesRequests() {
     const managerId = this.userService.getUser();
-    this.http.get<any[]>(`/api/leaverequests/viewSubordinatesLeaveRequests/${managerId}`).subscribe(data => {
-      this.allRequests = data;
-      this.allRequests.forEach(request => {
+    this.http.get<any[]>(`/api/leaverequests/viewSubordinatesLeaveRequests/${managerId}`).subscribe(requests => {
+      requests.forEach(request => {
         this.userService.getUserById(request.userId).subscribe(user => {
           request.userName = user.name;
         });
@@ -105,6 +115,7 @@ export class MainMenuComponent {
         });
         });
       });
+      this.store.dispatch(new SetAllRequests(requests));
     });
   }
 
@@ -132,7 +143,7 @@ export class MainMenuComponent {
   getMyLeaveRequests() {
     const currentUserId = this.userService.getUser();
     this.http.get<any[]>(`/api/leaverequests/user/${currentUserId}`).subscribe(data => {
-      this.leaveRequests = data;
+      this.store.dispatch(new SetLeaveRequests(data));
     });
   }
 
@@ -174,7 +185,7 @@ export class MainMenuComponent {
   }
 
   selectRequestForEdit(request: any) {
-    this.selectedRequest = {
+    const req = {
       id: request.id,
       leaveTypeName: request.leaveTypeName,
       startDate: request.startDate,
@@ -183,16 +194,26 @@ export class MainMenuComponent {
       status: request.status,
       userId: request.userId
     };
+    this.store.dispatch(new SetSelectedRequest(req));
+  }
+
+  get selectedRequestValue(): any | null {
+    let selectedRequest: any | null = null;
+    this.selectedRequest$.subscribe(request => {
+      selectedRequest = request;
+    }).unsubscribe();
+    return selectedRequest;
   }
 
   updateLeaveRequest() {
-    if (!this.selectedRequest?.id) return;
+    const selected = this.selectedRequestValue;
+    if(!selected?.id) return;
 
-    this.http.put(`/api/leaverequests/${this.selectedRequest.id}`, this.selectedRequest).subscribe({
+    this.http.put(`/api/leaverequests/${selected.id}`, selected).subscribe({
       next: () => {
         alert('Request updated successfully!');
         this.getMyLeaveRequests();
-        this.selectedRequest = null;
+        this.store.dispatch(new SetSelectedRequest(null));
       },
       error: () => {
         alert('Error while updating the request');
@@ -201,7 +222,7 @@ export class MainMenuComponent {
   }
 
   cancelEdit() {
-    this.selectedRequest = null;
+    this.store.dispatch(new SetSelectedRequest(null));
   }
 
   deleteLeaveRequest(requestId: number) {
