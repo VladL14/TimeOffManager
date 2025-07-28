@@ -7,7 +7,7 @@ import { RouterModule } from '@angular/router';
 import { Select, Store } from '@ngxs/store';
 import { MainMenuState } from '../state/main-menu.state';
 import { Observable } from 'rxjs';
-import { SetAllRequests, SetLeaveRequests, SetSelectedRequest } from '../state/main-menu.actions';
+import { SetAllRequests, SetLeaveRequests, SetSelectedRequest, SetSickLeave, SetUnpaidLeave, SetVacation } from '../state/main-menu.actions';
 
 @Component({
   selector: 'app-main-menu',
@@ -18,10 +18,9 @@ import { SetAllRequests, SetLeaveRequests, SetSelectedRequest } from '../state/m
 })
 
 export class MainMenuComponent {
-
-  vacationBalance: number | undefined;
-  sickLeaveBalance: number | undefined;
-  unpaidLeaveBalance: number | undefined;
+  vacationBalance$: Observable<number | undefined>;
+  sickLeaveBalance$: Observable<number | undefined>;
+  unpaidLeaveBalance$: Observable<number | undefined>;
   showDashboard = false;
   showForm = false;
   showRequests = false;
@@ -60,17 +59,22 @@ export class MainMenuComponent {
     this.leaveRequests$ = this.store.select(MainMenuState.getLeaveRequests);
     this.selectedRequest$ = this.store.select(MainMenuState.getSelectedRequest);
     this.allRequests$ = this.store.select(MainMenuState.getAllRequests);
+    this.vacationBalance$ = this.store.select(MainMenuState.getVacation);
+    this.sickLeaveBalance$ = this.store.select(MainMenuState.getSickLeave);
+    this.unpaidLeaveBalance$ = this.store.select(MainMenuState.getUnpaidLeave);
+
   }
   ngOnInit() {
     this.userService.loadUser().subscribe(() => {
-      this.userService.getVacationBalance(this.userService.getUser()).subscribe(balance => {
-        this.vacationBalance = balance;
+      const userId = this.userService.getUser();
+      this.userService.getVacationBalance(userId).subscribe(balance => {
+        this.store.dispatch(new SetVacation(balance));
       });
       this.userService.getSickBalance(this.userService.getUser()).subscribe(balance => {
-        this.sickLeaveBalance = balance;
+        this.store.dispatch(new SetSickLeave(balance));
       });
       this.userService.getUnpaidBalance(this.userService.getUser()).subscribe(balance => {
-        this.unpaidLeaveBalance = balance;
+        this.store.dispatch(new SetUnpaidLeave(balance));
       });
 
     if (this.userService.getRole() === 'ADMIN') {
