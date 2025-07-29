@@ -9,6 +9,7 @@ import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -30,11 +31,11 @@ public class LeaveTypeController {
 
     @GetMapping("/user/{userId}/leave_types")
     public ResponseEntity<?> getAllLeaveTypesForUser(@PathVariable int userId) {
-        List<LeaveType> leaveTypes = leaveTypeService.getAllLeaveTypesForUser(userId);
+        Map<String, Integer> leaveTypes = leaveTypeService.getAllLeaveTypesForUser(userId);
         if (leaveTypes.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No leave types found or user is inactive");
         }
-        return ResponseEntity.status(HttpStatus.OK).body(leaveTypes);
+        return ResponseEntity.ok(leaveTypes);
     }
 
     @GetMapping("/user/{userId}/vacation")

@@ -14,7 +14,9 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.http.ResponseEntity;
 
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -48,20 +50,24 @@ public class LeaveTypeServiceTest {
 
     @Test
     void getAllLeaveTypesForUser() {
-        LeaveType vacationLeave = new LeaveType(VACATION, 21, activeUser);
-        LeaveType sickLeave = new LeaveType(SICKLEAVE, 183, activeUser);
-        LeaveType unpaidLeave = new LeaveType(UNPAID, 90, activeUser);
+        LeaveType vacationLeave = new LeaveType(VACATION, 15, activeUser);
+        LeaveType sickLeave = new LeaveType(SICKLEAVE, 185, activeUser);
+        LeaveType unpaidLeave = new LeaveType(UNPAID, 75, activeUser);
         List<LeaveType> leaveTypeList = List.of(vacationLeave, sickLeave, unpaidLeave);
+
+        Map<String, Integer> expected = new HashMap<>();
+        expected.put(VACATION, 15);
+        expected.put(SICKLEAVE, 185);
+        expected.put(UNPAID, 75);
 
         when(userRepository.findById(1L)).thenReturn(Optional.of(activeUser));
         when(leaveTypeRepository.findByUserId(1)).thenReturn(leaveTypeList);
 
-        List<LeaveType> result = leaveTypeService.getAllLeaveTypesForUser(1);
+        Map<String, Integer> result = leaveTypeService.getAllLeaveTypesForUser(1);
 
         assertEquals(3, result.size());
-        assertTrue(result.contains(vacationLeave));
-        assertTrue(result.contains(sickLeave));
-        assertTrue(result.contains(unpaidLeave));
+        assertEquals(expected, result);
+
     }
 
     @Test
