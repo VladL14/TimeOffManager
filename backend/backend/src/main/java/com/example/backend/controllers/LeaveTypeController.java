@@ -29,7 +29,7 @@ public class LeaveTypeController {
     }
 
     @GetMapping("/user/{userId}/leave_types")
-    public ResponseEntity<?> getAllLeaveTypes(@PathVariable int userId) {
+    public ResponseEntity<?> getAllLeaveTypesForUser(@PathVariable int userId) {
         List<LeaveType> leaveTypes = leaveTypeService.getAllLeaveTypesForUser(userId);
         if (leaveTypes.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No leave types found or user is inactive");
