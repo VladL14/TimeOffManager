@@ -1,13 +1,14 @@
 import { Action, Selector, State, StateContext } from "@ngxs/store";
-import { SetAllRequests, SetLeaveRequests, SetSelectedRequest, SetSickLeave, SetUnpaidLeave, SetVacation } from "./main-menu.actions";
+import { SetAllRequests, SetLeaveRequests, SetSelectedRequest, GetAllLeaveTypes } from "./main-menu.actions";
+import { UserService } from "../user.service";
+import { Injectable } from "@angular/core";
+import { tap } from "rxjs";
 
 export interface MainMenuModel {
     leaveRequests: any[];
     allRequests: any[];
     selectedRequest: any | null;
-    vacation: number | undefined;
-    sickLeave: number | undefined;
-    unpaid: number | undefined;
+    leaveBalances: { [key: string]: number };
 }
 @State<MainMenuModel>({
   name: 'mainMenu',
@@ -15,12 +16,12 @@ export interface MainMenuModel {
         leaveRequests: [],
         allRequests: [],
         selectedRequest: null,
-        vacation: undefined,
-        sickLeave: undefined,
-        unpaid: undefined
+        leaveBalances: {}
     }
 })
+@Injectable()
 export class MainMenuState {
+    constructor(private userService: UserService) {}
     @Selector()
     static getLeaveRequests(state: MainMenuModel) {
         return state.leaveRequests;
@@ -34,17 +35,10 @@ export class MainMenuState {
         return state.allRequests;
     }
     @Selector()
-    static getVacation(state: MainMenuModel) {
-        return state.vacation;
+    static getLeaveBalances(state: MainMenuModel) {
+        return state.leaveBalances;
     }
-    @Selector()
-    static getSickLeave(state: MainMenuModel) {
-        return state.sickLeave;
-    }
-    @Selector()
-    static getUnpaidLeave(state: MainMenuModel) {
-        return state.unpaid;
-    }
+    
     @Action(SetLeaveRequests)
     setLeaveRequests(ctx: StateContext<MainMenuModel>, action: SetLeaveRequests) {
         ctx.patchState({leaveRequests: action.requests});
@@ -57,16 +51,16 @@ export class MainMenuState {
     setAllRequests(ctx: StateContext<MainMenuModel>, action: SetAllRequests) {
         ctx.patchState({allRequests: action.requests});
     }
-    @Action(SetVacation)
-    setVacation(ctx: StateContext<MainMenuModel>, action: SetVacation) {
-        ctx.patchState({vacation: action.vacation});
+    
+    @Action(GetAllLeaveTypes)
+    getAllLeaveTypes(ctx: StateContext<MainMenuModel>, action: GetAllLeaveTypes) {
+    return this.userService.getAllLeaveTypesForUser(action.userId).pipe(
+        tap((res: { [key: string]: number }) => {
+        ctx.patchState({
+            leaveBalances: res
+        });
+        })
+    );
     }
-    @Action(SetSickLeave)
-    setSickLeave(ctx: StateContext<MainMenuModel>, action: SetSickLeave) {
-        ctx.patchState({sickLeave: action.sickLeave});
+
     }
-    @Action(SetUnpaidLeave)
-    setUnpaidLeave(ctx: StateContext<MainMenuModel>, action: SetUnpaidLeave) {
-        ctx.patchState({unpaid: action.unpaid});
-    }
-}

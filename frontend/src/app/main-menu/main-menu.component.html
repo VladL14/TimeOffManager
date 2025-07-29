@@ -10,9 +10,9 @@
 <div *ngIf="showDashboard">
   <div *ngIf="userService.getRole() === 'USER'" class="dashboard-container">
     <div class="actions">
-      <p *ngIf="(vacationBalance$ | async) as vacation" id="vacanta">Remaining vacation days: {{ vacation }}</p>
-      <p *ngIf="(sickLeaveBalance$ | async) as sick" id="concediu">Remaining sick leave days: {{ sick }}</p>
-      <p *ngIf="(unpaidLeaveBalance$ | async) as unpaid" id="neplatit">Remaining unpaid leave days: {{ unpaid }}</p>
+      <p *ngIf="(leaveBalances$ | async) as balances" id="vacanta"><span *ngIf="balances['Vacation'] !== undefined">Remaining vacation days: {{ balances['Vacation'] }}</span></p>
+      <p *ngIf="(leaveBalances$ | async) as balances" id="concediu"><span *ngIf="balances['Sick Leave'] !== undefined">Remaining sick leave days: {{ balances['Sick Leave'] }}</span></p>
+      <p *ngIf="(leaveBalances$ | async) as balances" id="neplatit"><span *ngIf="balances['Unpaid'] !== undefined">Remaining unpaid leave days: {{ balances['Unpaid'] }}</span></p>
       <button (click)="goBackToMenu()">Back to menu</button>
       <button (click)="toggleShowRequests()">View my requests</button>
       <button (click)="toggleShowForm()">Submit new request</button>
@@ -79,9 +79,9 @@
 
   <div *ngIf="userService.getRole() === 'MANAGER'" class="dashboard-container">
   <div class="actions">
-    <p *ngIf="(vacationBalance$ | async) as vacation" id="vacanta">Remaining vacation days: {{ vacation }}</p>
-    <p *ngIf="(sickLeaveBalance$ | async) as sick" id="concediu">Remaining sick leave days: {{ sick }}</p>
-    <p *ngIf="(unpaidLeaveBalance$ | async) as unpaid" id="neplatit">Remaining unpaid leave days: {{ unpaid }}</p>
+      <p *ngIf="(leaveBalances$ | async) as balances" id="vacanta"><span *ngIf="balances['Vacation'] !== undefined">Remaining vacation days: {{ balances['Vacation'] }}</span></p>
+      <p *ngIf="(leaveBalances$ | async) as balances" id="concediu"><span *ngIf="balances['Sick Leave'] !== undefined">Remaining sick leave days: {{ balances['Sick Leave'] }}</span></p>
+      <p *ngIf="(leaveBalances$ | async) as balances" id="neplatit"><span *ngIf="balances['Unpaid'] !== undefined">Remaining unpaid leave days: {{ balances['Unpaid'] }}</span></p>
     <button (click)="goBackToMenu()">Back to menu</button>
     <button (click)="toggleShowRequests()">View subordinates requests</button>
     <button (click)="toggleShowForm()">Submit new request</button>
