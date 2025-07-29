@@ -14,6 +14,7 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.http.ResponseEntity;
 
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -33,6 +34,8 @@ public class LeaveTypeServiceTest {
     private User activeUser;
 
     private final String VACATION = "Vacation";
+    private final String SICKLEAVE= "Sick Leave";
+    private final String UNPAID = "Unpaid";
 
     @BeforeEach
     void setUp() {
@@ -41,6 +44,24 @@ public class LeaveTypeServiceTest {
         activeUser = new User();
         activeUser.setId(1);
         activeUser.setIsActive(true);
+    }
+
+    @Test
+    void getAllLeaveTypesForUser() {
+        LeaveType vacationLeave = new LeaveType(VACATION, 21, activeUser);
+        LeaveType sickLeave = new LeaveType(SICKLEAVE, 183, activeUser);
+        LeaveType unpaidLeave = new LeaveType(UNPAID, 90, activeUser);
+        List<LeaveType> leaveTypeList = List.of(vacationLeave, sickLeave, unpaidLeave);
+
+        when(userRepository.findById(1L)).thenReturn(Optional.of(activeUser));
+        when(leaveTypeRepository.findByUserId(1)).thenReturn(leaveTypeList);
+
+        List<LeaveType> result = leaveTypeService.getAllLeaveTypesForUser(1);
+
+        assertEquals(3, result.size());
+        assertTrue(result.contains(vacationLeave));
+        assertTrue(result.contains(sickLeave));
+        assertTrue(result.contains(unpaidLeave));
     }
 
     @Test
@@ -63,6 +84,8 @@ public class LeaveTypeServiceTest {
 
         assertEquals(VACATION, result.getName());
         assertEquals(21, result.getBalanceDays());
+
+        verify(leaveTypeRepository, times(1)).save(any());
       }
 
     @Test
