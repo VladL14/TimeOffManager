@@ -98,8 +98,13 @@ public class ProjectAssignmentServiceTest {
         projectAssignment.setProject(project);
         when(userRepository.findById(1L)).thenReturn(Optional.of(user));
         when(projectRepository.findById(4L)).thenReturn(Optional.of(project));
+        when(projectAssignmentRepository.save(projectAssignment)).thenReturn(projectAssignment);
+
         ResponseEntity<?> response = projectAssignmentService.createProjectAssignment(projectAssignment);
         assertEquals(200, response.getStatusCodeValue());
+        assertEquals(projectAssignment, response.getBody());
+
+        verify(projectAssignmentRepository, times(1)).save(projectAssignment);
 
     }
 }
