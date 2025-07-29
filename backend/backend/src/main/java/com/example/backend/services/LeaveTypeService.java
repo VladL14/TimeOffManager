@@ -8,6 +8,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 import com.example.backend.entities.User;
 @Service
@@ -22,6 +23,13 @@ public class LeaveTypeService {
     public LeaveTypeService(LeaveTypeRepository leaveTypeRepository, UserRepository userRepository) {
         this.leaveTypeRepository = leaveTypeRepository;
         this.userRepository = userRepository;
+    }
+
+    public List<LeaveType> getAllLeaveTypesForUser(int userId) {
+        if(isUserActive(userId)) {
+            return leaveTypeRepository.findByUserId(userId);
+        }
+        return List.of();
     }
 
     public LeaveType getOrCreateLeaveType(int userId, String typeName, int defaultBalance) {
@@ -39,7 +47,6 @@ public class LeaveTypeService {
         LeaveType newLeave = new LeaveType(typeName, defaultBalance, user);
         return leaveTypeRepository.save(newLeave);
     }
-
 
     public boolean isUserActive(int userId) {
         Optional<User> optionalUser = userRepository.findById((long) userId);

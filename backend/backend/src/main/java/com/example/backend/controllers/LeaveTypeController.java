@@ -28,6 +28,15 @@ public class LeaveTypeController {
         return leaveTypeRepository.findAll();
     }
 
+    @GetMapping("/user/{userId}/leave_types")
+    public ResponseEntity<?> getAllLeaveTypes(@PathVariable int userId) {
+        List<LeaveType> leaveTypes = leaveTypeService.getAllLeaveTypesForUser(userId);
+        if (leaveTypes.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No leave types found or user is inactive");
+        }
+        return ResponseEntity.status(HttpStatus.OK).body(leaveTypes);
+    }
+
     @GetMapping("/user/{userId}/vacation")
     public ResponseEntity<?> getVacationBalance(@PathVariable int userId) {
         int balance = leaveTypeService.getVacationBalance(userId);
