@@ -24,15 +24,8 @@ export class UserService {
     return this.http.get<any>(`/api/users/${userId}`);
   }
 
-
-  getVacationBalance(userId: number): Observable<number> {
-    return this.http.get<number>(`/api/leavetypes/user/${userId}/vacation`);
-  }
-  getSickBalance(userId: number): Observable<number> {
-    return this.http.get<number>(`/api/leavetypes/user/${userId}/sick_leave`);
-  }
-  getUnpaidBalance(userId: number): Observable<number> {
-    return this.http.get<number>(`/api/leavetypes/user/${userId}/unpaid`);
+  getAllLeaveTypesForUser(userId: number): Observable<any> {
+    return this.http.get<any>(`/api/leavetypes/user/${userId}/leave_types`);
   }
 
   getUser(): number {

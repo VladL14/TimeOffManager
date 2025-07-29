@@ -4,10 +4,10 @@ import { UserService} from '../user.service';
 import { AsyncPipe, NgIf, NgForOf } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
-import { Select, Store } from '@ngxs/store';
+import { Store } from '@ngxs/store';
 import { MainMenuState } from '../state/main-menu.state';
 import { Observable } from 'rxjs';
-import { SetAllRequests, SetLeaveRequests, SetSelectedRequest, SetSickLeave, SetUnpaidLeave, SetVacation } from '../state/main-menu.actions';
+import { GetAllLeaveTypes, SetAllRequests, SetLeaveRequests, SetSelectedRequest} from '../state/main-menu.actions';
 
 @Component({
   selector: 'app-main-menu',
@@ -18,9 +18,7 @@ import { SetAllRequests, SetLeaveRequests, SetSelectedRequest, SetSickLeave, Set
 })
 
 export class MainMenuComponent {
-  vacationBalance$: Observable<number | undefined>;
-  sickLeaveBalance$: Observable<number | undefined>;
-  unpaidLeaveBalance$: Observable<number | undefined>;
+
   showDashboard = false;
   showForm = false;
   showRequests = false;
@@ -30,6 +28,7 @@ export class MainMenuComponent {
   leaveRequests$: Observable<any[]>;
   selectedRequest$: Observable<any | null>;
   allRequests$: Observable<any[]>;
+  leaveBalances$: Observable<{ [key: string]: number }>;
 
   newUser = {
     name: '',
@@ -59,29 +58,19 @@ export class MainMenuComponent {
     this.leaveRequests$ = this.store.select(MainMenuState.getLeaveRequests);
     this.selectedRequest$ = this.store.select(MainMenuState.getSelectedRequest);
     this.allRequests$ = this.store.select(MainMenuState.getAllRequests);
-    this.vacationBalance$ = this.store.select(MainMenuState.getVacation);
-    this.sickLeaveBalance$ = this.store.select(MainMenuState.getSickLeave);
-    this.unpaidLeaveBalance$ = this.store.select(MainMenuState.getUnpaidLeave);
+    this.leaveBalances$ = this.store.select(MainMenuState.getLeaveBalances);
 
   }
-  ngOnInit() {
-    this.userService.loadUser().subscribe(() => {
-      const userId = this.userService.getUser();
-      this.userService.getVacationBalance(userId).subscribe(balance => {
-        this.store.dispatch(new SetVacation(balance));
-      });
-      this.userService.getSickBalance(this.userService.getUser()).subscribe(balance => {
-        this.store.dispatch(new SetSickLeave(balance));
-      });
-      this.userService.getUnpaidBalance(this.userService.getUser()).subscribe(balance => {
-        this.store.dispatch(new SetUnpaidLeave(balance));
-      });
-
+ngOnInit() {
+  this.userService.loadUser().subscribe(() => {
+    const userId = this.userService.getUser();
+    this.store.dispatch(new GetAllLeaveTypes(userId));
     if (this.userService.getRole() === 'ADMIN') {
       this.loadAllRequests();
     }
-    });
-  }
+  });
+}
+
 
 
   goBackToMenu() {
@@ -290,14 +279,10 @@ export class MainMenuComponent {
       this.users = data;
       this.users.forEach(user => {
         if(user.isActive === true){
-        this.userService.getVacationBalance(user.id).subscribe(balance => {
-          user.vacationBalance = balance;
-        });
-        this.userService.getSickBalance(user.id).subscribe(balance => {
-          user.sickBalance = balance;
-        });
-        this.userService.getUnpaidBalance(user.id).subscribe(balance => {
-          user.unpaidBalance = balance;
+          this.userService.getAllLeaveTypesForUser(user.id).subscribe(leaveTypes => {
+          user.vacationBalance = leaveTypes["Vacation"] ?? 0;
+          user.sickBalance = leaveTypes["Sick Leave"] ?? 0;
+          user.unpaidBalance = leaveTypes["Unpaid"] ?? 0;
         });
       }
       });
