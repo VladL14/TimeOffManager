@@ -8,7 +8,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import com.example.backend.entities.User;
 @Service
@@ -25,12 +27,25 @@ public class LeaveTypeService {
         this.userRepository = userRepository;
     }
 
-    public List<LeaveType> getAllLeaveTypesForUser(int userId) {
-        if(isUserActive(userId)) {
-            return leaveTypeRepository.findByUserId(userId);
+    public Map<String, Integer> getAllLeaveTypesForUser(int userId) {
+        Map<String, Integer> result = new HashMap<>();
+
+        result.put(VACATION, 21);
+        result.put(SICKLEAVE, 185);
+        result.put(UNPAID, 90);
+
+        if (isUserActive(userId)) {
+            List<LeaveType> leaveTypeList = leaveTypeRepository.findByUserId(userId);
+
+            for (LeaveType leaveType : leaveTypeList) {
+                result.put(leaveType.getName(), leaveType.getBalanceDays());
+            }
+            return result;
         }
-        return List.of();
+
+        return new HashMap<>();
     }
+
 
     public LeaveType getOrCreateLeaveType(int userId, String typeName, int defaultBalance) {
         Optional<LeaveType> optionalLeave = leaveTypeRepository.findByUserIdAndName(userId, typeName);
