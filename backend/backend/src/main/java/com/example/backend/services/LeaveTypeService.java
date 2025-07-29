@@ -28,23 +28,44 @@ public class LeaveTypeService {
     }
 
     public Map<String, Integer> getAllLeaveTypesForUser(int userId) {
+        Map<String, Integer> defaultBalances = new HashMap<>();
+        defaultBalances.put(VACATION, 21);
+        defaultBalances.put(SICKLEAVE, 185);
+        defaultBalances.put(UNPAID, 90);
+
         Map<String, Integer> result = new HashMap<>();
 
-        result.put(VACATION, 21);
-        result.put(SICKLEAVE, 185);
-        result.put(UNPAID, 90);
-
-        if (isUserActive(userId)) {
-            List<LeaveType> leaveTypeList = leaveTypeRepository.findByUserId(userId);
-
-            for (LeaveType leaveType : leaveTypeList) {
-                result.put(leaveType.getName(), leaveType.getBalanceDays());
-            }
+        if (!isUserActive(userId)) {
             return result;
         }
 
-        return new HashMap<>();
+        List<LeaveType> leaveTypeList = leaveTypeRepository.findByUserId(userId);
+
+
+        Map<String, LeaveType> existingTypes = new HashMap<>();
+        for (LeaveType leaveType : leaveTypeList) {
+            existingTypes.put(leaveType.getName(), leaveType);
+        }
+
+        for (Map.Entry<String, Integer> entry : defaultBalances.entrySet()) {
+            String typeName = entry.getKey();
+            Integer defaultValue = entry.getValue();
+
+            if (existingTypes.containsKey(typeName)) {
+                result.put(typeName, existingTypes.get(typeName).getBalanceDays());
+            } else {
+                LeaveType newType = new LeaveType();
+                newType.setUserId(userId);
+                newType.setName(typeName);
+                newType.setBalanceDays(defaultValue);
+                leaveTypeRepository.save(newType);
+                result.put(typeName, defaultValue);
+            }
+        }
+
+        return result;
     }
+
 
 
     public LeaveType getOrCreateLeaveType(int userId, String typeName, int defaultBalance) {
