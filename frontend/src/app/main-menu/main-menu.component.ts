@@ -6,8 +6,8 @@ import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { Store } from '@ngxs/store';
 import { MainMenuState } from '../state/main-menu.state';
-import { Observable } from 'rxjs';
-import { GetAllLeaveTypes, SetAllRequests, SetLeaveRequests, SetSelectedRequest} from '../state/main-menu.actions';
+import { firstValueFrom, map, Observable } from 'rxjs';
+import { ApproveLeaveRequest, GetAllLeaveTypes, GetAllRequests, GetMyLeaveRequests, GetSubordinatesRequests, LoadCurrentUser, LoadUsers, RejectLeaveRequest, SetAllRequests, SetLeaveRequests, SetSelectedRequest, SubmitLeaveRequest, UpdateUserBalances} from '../state/main-menu.actions';
 
 @Component({
   selector: 'app-main-menu',
@@ -29,26 +29,12 @@ export class MainMenuComponent {
   selectedRequest$: Observable<any | null>;
   allRequests$: Observable<any[]>;
   leaveBalances$: Observable<{ [key: string]: number }>;
-
-  newUser = {
-    name: '',
-    email: '',
-    role: '',
-  }
-
-  predefinedLeaveTypes = [
-    { name: 'Vacation' },
-    { name: 'Sick Leave' },
-    { name: 'Unpaid' },
-  ];
-
-  newLeaveRequest = {
-    leaveTypeName: '',
-    startDate: '',
-    endDate: '',
-    notes: '',
-    status: 'PENDING'
-  };
+  users$: Observable<any[]>;
+  userError$: Observable<string | null>;
+  currentUser$: Observable<any | null>;
+  newUser = { name: '', email: '', role: '' };
+  predefinedLeaveTypes = [{ name: 'Vacation' }, { name: 'Sick Leave' }, { name: 'Unpaid' }];
+  newLeaveRequest = { leaveTypeName: '', startDate: '', endDate: '', notes: '', status: 'PENDING' };
 
   constructor(
     public userService: UserService,
@@ -59,18 +45,28 @@ export class MainMenuComponent {
     this.selectedRequest$ = this.store.select(MainMenuState.getSelectedRequest);
     this.allRequests$ = this.store.select(MainMenuState.getAllRequests);
     this.leaveBalances$ = this.store.select(MainMenuState.getLeaveBalances);
+    this.users$ = this.store.select(MainMenuState.getUsers);
+    this.userError$ = this.store.select(MainMenuState.getUserError);
+    this.currentUser$ = this.store.select(MainMenuState.getCurrentUser);
+
 
   }
-ngOnInit() {
-  this.userService.loadUser().subscribe(() => {
-    const userId = this.userService.getUser();
-    this.store.dispatch(new GetAllLeaveTypes(userId));
-    if (this.userService.getRole() === 'ADMIN') {
-      this.loadAllRequests();
-    }
-  });
-}
+  ngOnInit() {
+    this.store.dispatch(new LoadCurrentUser());
 
+    this.currentUser$.subscribe(user => {
+      if (user) {
+        this.store.dispatch(new GetAllLeaveTypes(user.id));
+        if (user.role === 'ADMIN') {
+          this.store.dispatch(new GetAllRequests());
+          this.store.dispatch(new LoadUsers());
+        }
+      }
+    });
+    this.users$ = this.store.select(MainMenuState.getUsers).pipe(
+      map(users => [...users].sort((a, b) => a.name.localeCompare(b.name)))
+    );
+  }
 
 
   goBackToMenu() {
@@ -78,38 +74,6 @@ ngOnInit() {
   this.showForm = false;
   this.showRequests = false;
   this.store.dispatch([ new SetLeaveRequests([]), new SetSelectedRequest(null) ]);
-  }
-
-
-  loadAllRequests() {
-    this.http.get<any[]>('/api/leaverequests').subscribe(requests => {
-      requests.forEach(request => {
-      this.userService.getUserById(request.userId).subscribe(user => {
-        request.userName = user.name;
-      });
-    });
-    this.store.dispatch(new SetAllRequests(requests));
-    });
-  }
-  loadSubordinatesRequests() {
-    const managerId = this.userService.getUser();
-    this.http.get<any[]>(`/api/leaverequests/viewSubordinatesLeaveRequests/${managerId}`).subscribe(requests => {
-      requests.forEach(request => {
-        this.userService.getUserById(request.userId).subscribe(user => {
-          request.userName = user.name;
-        });
-        this.http.get<any[]>(`/api/projects/user/${request.userId}`).subscribe(projects => {
-          request.projects = projects;
-        
-        projects.forEach(project => {
-          this.http.get<any[]>(`/api/projects/${project.id}/users`).subscribe(users => {
-            project.members = users;
-          });
-        });
-        });
-      });
-      this.store.dispatch(new SetAllRequests(requests));
-    });
   }
 
   goToDashboard() {
@@ -122,22 +86,23 @@ ngOnInit() {
 
   toggleShowRequests() {
     if (!this.showRequests) {
-      if(this.userService.getRole() === 'ADMIN') {
-        this.loadAllRequests();
-      }else if(this.userService.getRole() === 'MANAGER') {
-        this.loadSubordinatesRequests();
-      }else{
-      this.getMyLeaveRequests();
+    this.store.dispatch(new LoadCurrentUser());
+      this.currentUser$.subscribe(user => {
+      if(user.role === 'ADMIN') {
+        this.store.dispatch(new GetAllRequests());
+      } else if(user.role === 'MANAGER') {
+        this.store.dispatch(new GetSubordinatesRequests());
+      } else {
+        this.store.dispatch(new GetMyLeaveRequests());
+      }
     }
-  }
+      );
+    }
     this.showRequests = !this.showRequests;
   }
 
   getMyLeaveRequests() {
-    const currentUserId = this.userService.getUser();
-    this.http.get<any[]>(`/api/leaverequests/user/${currentUserId}`).subscribe(data => {
-      this.store.dispatch(new SetLeaveRequests(data));
-    });
+    this.store.dispatch(new GetMyLeaveRequests());
   }
 
   formatDate(dateString: string): string {
@@ -153,41 +118,24 @@ ngOnInit() {
     return date.toISOString().split('T')[0];
   }
 
-  submitNewRequest() {
-    const currentUserId = this.userService.getUser();
+  async submitNewRequest() {
+    const user = await firstValueFrom(this.currentUser$);
 
-    const requestData = {
+    const newreq = {
       leaveTypeName: this.newLeaveRequest.leaveTypeName,
       startDate: this.newLeaveRequest.startDate,
       endDate: this.newLeaveRequest.endDate,
       notes: this.newLeaveRequest.notes,
-      status: 'PENDING',
-      userId: currentUserId
+      userId: user.id
     };
 
-    this.http.post('/api/leaverequests', requestData).subscribe({
-      next: () => {
-        alert('The request was sent successfully!');
-        this.getMyLeaveRequests();
-        this.resetForm();
-      },
-      error: () => {
-        alert('Error while sending the request');
-      }
-    });
+    this.store.dispatch(new SubmitLeaveRequest(newreq));
+    this.resetForm();
   }
 
+
   selectRequestForEdit(request: any) {
-    const req = {
-      id: request.id,
-      leaveTypeName: request.leaveTypeName,
-      startDate: request.startDate,
-      endDate: request.endDate,
-      notes: request.notes,
-      status: request.status,
-      userId: request.userId
-    };
-    this.store.dispatch(new SetSelectedRequest(req));
+    this.store.dispatch(new SetSelectedRequest({ ...request }));
   }
 
   get selectedRequestValue(): any | null {
@@ -205,7 +153,7 @@ ngOnInit() {
     this.http.put(`/api/leaverequests/${selected.id}`, selected).subscribe({
       next: () => {
         alert('Request updated successfully!');
-        this.getMyLeaveRequests();
+        this.store.dispatch(new GetMyLeaveRequests());
         this.store.dispatch(new SetSelectedRequest(null));
       },
       error: () => {
@@ -223,7 +171,7 @@ ngOnInit() {
       this.http.delete(`/api/leaverequests/${requestId}/delete`).subscribe({
         next: () => {
           alert('Request deleted successfully!');
-          this.getMyLeaveRequests();
+          this.store.dispatch(new GetMyLeaveRequests());
         },
         error: () => {
           alert('Error while deleting the request');
@@ -231,91 +179,51 @@ ngOnInit() {
       });
     }
   }
-    resetForm() {
-    this.newLeaveRequest = {
-      leaveTypeName: '',
-      startDate: '',
-      endDate: '',
-      notes: '',
-      status: 'PENDING'
-    };
+  resetForm() {
+    this.newLeaveRequest = { leaveTypeName: '', startDate: '', endDate: '', notes: '', status: 'PENDING' };
   }
 
-  approveLeaveRequest(requestId: number) {
-    const currentId = this.userService.getUser();
-    this.http.put(`/api/leaverequests/${requestId}/approve?givenId=${currentId}`, {}).subscribe({
-      next: () => {
-        alert('Request approved successfully!');
-        this.loadAllRequests();
-      },
-      error: () => {
-        alert('Error while approving the request');
-      }
-    });
+  async approveLeaveRequest(requestId: number) {
+  const user = await firstValueFrom(this.currentUser$);
+  this.store.dispatch(new ApproveLeaveRequest(requestId, user.id));
+}
+
+  async rejectLeaveRequest(requestId: number) {
+    const user = await firstValueFrom(this.currentUser$);
+    this.store.dispatch(new RejectLeaveRequest(requestId, user.id));
   }
-  rejectLeaveRequest(requestId: number) {
-    const currentId = this.userService.getUser();
-    this.http.put(`/api/leaverequests/${requestId}/reject?givenId=${currentId}`, {}).subscribe({
-      next: () => {
-        alert('Request rejected successfully!');
-        this.loadAllRequests();
-      },
-      error: () => {
-        alert('Error while rejecting the request');
-      }
-    });
-  }
+
+
   toggleShowUsers() {
     if (!this.showUsers) {
-      this.loadUsers();
+      this.store.dispatch(new LoadUsers());
     }
     this.showUsers = !this.showUsers;
   }
   toggleShowUserForm() {
     this.showUserForm = !this.showUserForm;
   }
-  loadUsers() {
-    this.http.get<any[]>('/api/users').subscribe(data => {
-      this.users = data;
-      this.users.forEach(user => {
-        if(user.isActive === true){
-          this.userService.getAllLeaveTypesForUser(user.id).subscribe(leaveTypes => {
-          user.vacationBalance = leaveTypes["Vacation"] ?? 0;
-          user.sickBalance = leaveTypes["Sick Leave"] ?? 0;
-          user.unpaidBalance = leaveTypes["Unpaid"] ?? 0;
-        });
-      }
-      });
-    });
-  }
   createUser() {
     this.http.post('/api/users/createUser', this.newUser).subscribe(() => {
       alert('User created successfully!');
-      this.newUser = {
-        name: '',
-        email: '',
-        role: '',
-      };
-      this.loadUsers();
+      this.newUser = { name: '', email: '', role: '' };
+      this.store.dispatch(new LoadUsers());
     });
   }
-deleteUser(userId: number) {
-  if (confirm('Are you sure you want to delete this user?')) {
-    this.http.delete(`/api/users/deleteUser?id=${userId}`, { responseType: 'text' })
-      .subscribe(() => {
-        alert('User deleted successfully!');
-        this.loadUsers();
-      });
+  deleteUser(userId: number) {
+    if (confirm('Are you sure you want to delete this user?')) {
+      this.http.delete(`/api/users/deleteUser?id=${userId}`, { responseType: 'text' })
+        .subscribe(() => {
+          alert('User deleted successfully!');
+          this.store.dispatch(new LoadUsers());
+        });
+    }
   }
+
+  updateBalances(userId: number, vacation: number, sickLeave: number, unpaid: number) {
+  this.store.dispatch(new UpdateUserBalances(userId, vacation, sickLeave, unpaid));
 }
 
-  updateBalances(userId: number, vacation: number, sickLeave:number, unpaid: number) {
-    this.http.put(`/api/leavetypes/user/${userId}/vacation/balance?newBalance=${vacation}`, {}).subscribe();
-    this.http.put(`/api/leavetypes/user/${userId}/sick_leave/balance?newBalance=${sickLeave}`, {}).subscribe();
-    this.http.put(`/api/leavetypes/user/${userId}/unpaid/balance?newBalance=${unpaid}`, {}).subscribe();
-    alert('Balances updated successfully!');
-    this.loadUsers();
-  }
 
 
 

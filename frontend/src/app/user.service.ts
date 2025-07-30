@@ -6,7 +6,7 @@ import { Observable, tap } from 'rxjs';
   providedIn: 'root'
 })
 export class UserService {
-  private userId = 1;
+  private userId = 3;
   private role: string = '';
   private name: string = '';
 
@@ -19,6 +19,9 @@ export class UserService {
         this.name = user.name;
       })
     );
+  }
+  getAllUsers(): Observable<any[]> {
+    return this.http.get<any[]>('/api/users');
   }
   getUserById(userId: number): Observable<any> {
     return this.http.get<any>(`/api/users/${userId}`);
