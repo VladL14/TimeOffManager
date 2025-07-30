@@ -37,17 +37,6 @@ export class SetCurrentUser {
   static readonly type = '[MainMenu] Set Current User';
   constructor(public user: any) {}
 }
-export class GetMyLeaveRequests {
-  static readonly type = '[MainMenu] Get My Leave Requests';
-}
-
-export class GetAllRequests {
-  static readonly type = '[MainMenu] Get All Requests';
-}
-
-export class GetSubordinatesRequests {
-  static readonly type = '[MainMenu] Get Subordinates Requests';
-}
 
 export class UpdateUserBalances {
   static readonly type = '[Users] Update User Balances';

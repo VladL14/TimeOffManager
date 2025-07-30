@@ -1,4 +1,5 @@
 import { Action, Selector, State, StateContext } from "@ngxs/store";
+
 import { SetAllRequests, SetLeaveRequests, SetSelectedRequest, GetAllLeaveTypes, LoadUsers, LoadUsersSuccess, LoadUsersFail, LoadCurrentUser, SetCurrentUser, GetMyLeaveRequests, GetAllRequests, GetSubordinatesRequests, UpdateUserBalances, ApproveLeaveRequest, RejectLeaveRequest, SubmitLeaveRequest } from "./main-menu.actions";
 import { UserService } from "../user.service";
 import { Injectable } from "@angular/core";
@@ -13,7 +14,9 @@ export interface MainMenuModel {
     users: any[];
     userError: string | null;
     currentUser: any | null;
+
 }
+
 @State<MainMenuModel>({
   name: 'mainMenu',
     defaults: {
@@ -74,12 +77,21 @@ export class MainMenuState {
     
     @Action(GetAllLeaveTypes)
     getAllLeaveTypes(ctx: StateContext<MainMenuModel>, action: GetAllLeaveTypes) {
+
     return this.userService.getAllLeaveTypesForUser(action.userId).pipe(
-        tap((res: { [key: string]: number }) => {
-        ctx.patchState({
-            leaveBalances: res
-        });
-        })
+      tap((res: { [key: string]: number }) => {
+        ctx.patchState({ leaveBalances: res });
+      })
+    );
+  }
+
+  @Action(GetMyLeaveRequests)
+  getMyLeaveRequests(ctx: StateContext<MainMenuModel>) {
+    const userId = this.userService.getUser();
+    return this.http.get<any[]>(`/api/leaverequests/user/${userId}`).pipe(
+      tap(requests => {
+        ctx.dispatch(new SetLeaveRequests(requests));
+      })
     );
     }
     @Action(LoadUsers)
@@ -279,9 +291,4 @@ submitLeaveRequest(ctx: StateContext<MainMenuModel>, action: SubmitLeaveRequest)
 }
 
 
-
-
-
-
-
-    }
+  }
