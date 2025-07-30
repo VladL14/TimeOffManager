@@ -6,8 +6,10 @@ import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { Store } from '@ngxs/store';
 import { MainMenuState } from '../state/main-menu.state';
-import { Observable } from 'rxjs';
-import { GetAllLeaveTypes, GetMyLeaveRequests, SetAllRequests, SetLeaveRequests, SetSelectedRequest, GetAllRequests, GetSubordinatesRequests } from '../state/main-menu.actions';
+
+import { firstValueFrom, map, Observable } from 'rxjs';
+import { ApproveLeaveRequest, GetAllLeaveTypes, GetAllRequests, GetMyLeaveRequests, GetSubordinatesRequests, LoadCurrentUser, LoadUsers, RejectLeaveRequest, SetAllRequests, SetLeaveRequests, SetSelectedRequest, SubmitLeaveRequest, UpdateUserBalances} from '../state/main-menu.actions';
+
 
 @Component({
   selector: 'app-main-menu',
@@ -27,6 +29,9 @@ export class MainMenuComponent {
   selectedRequest$: Observable<any | null>;
   allRequests$: Observable<any[]>;
   leaveBalances$: Observable<{ [key: string]: number }>;
+  users$: Observable<any[]>;
+  userError$: Observable<string | null>;
+  currentUser$: Observable<any | null>;
   newUser = { name: '', email: '', role: '' };
   predefinedLeaveTypes = [{ name: 'Vacation' }, { name: 'Sick Leave' }, { name: 'Unpaid' }];
   newLeaveRequest = { leaveTypeName: '', startDate: '', endDate: '', notes: '', status: 'PENDING' };
@@ -40,24 +45,40 @@ export class MainMenuComponent {
     this.selectedRequest$ = this.store.select(MainMenuState.getSelectedRequest);
     this.allRequests$ = this.store.select(MainMenuState.getAllRequests);
     this.leaveBalances$ = this.store.select(MainMenuState.getLeaveBalances);
-  }
 
+    this.users$ = this.store.select(MainMenuState.getUsers);
+    this.userError$ = this.store.select(MainMenuState.getUserError);
+    this.currentUser$ = this.store.select(MainMenuState.getCurrentUser);
+
+
+  }
   ngOnInit() {
-    this.userService.loadUser().subscribe(() => {
-      const userId = this.userService.getUser();
-      this.store.dispatch(new GetAllLeaveTypes(userId));
-      if (this.userService.getRole() === 'ADMIN') {
-        this.store.dispatch(new GetAllRequests());
+    this.store.dispatch(new LoadCurrentUser());
+
+    this.currentUser$.subscribe(user => {
+      if (user) {
+        this.store.dispatch(new GetAllLeaveTypes(user.id));
+        if (user.role === 'ADMIN') {
+          this.store.dispatch(new GetAllRequests());
+          this.store.dispatch(new LoadUsers());
+        }
       }
     });
+    this.users$ = this.store.select(MainMenuState.getUsers).pipe(
+      map(users => [...users].sort((a, b) => a.name.localeCompare(b.name)))
+    );
   }
 
+
   goBackToMenu() {
-    this.showDashboard = false;
-    this.showForm = false;
-    this.showRequests = false;
-    this.store.dispatch([ new SetLeaveRequests([]), new SetSelectedRequest(null) ]);
+  this.showDashboard = false;
+  this.showForm = false;
+  this.showRequests = false;
+  this.store.dispatch([ new SetLeaveRequests([]), new SetSelectedRequest(null) ]);
+
   }
+
+
 
   goToDashboard() {
     this.showDashboard = true;
@@ -69,13 +90,19 @@ export class MainMenuComponent {
 
   toggleShowRequests() {
     if (!this.showRequests) {
-      if(this.userService.getRole() === 'ADMIN') {
+
+    this.store.dispatch(new LoadCurrentUser());
+      this.currentUser$.subscribe(user => {
+      if(user.role === 'ADMIN') {
         this.store.dispatch(new GetAllRequests());
-      } else if(this.userService.getRole() === 'MANAGER') {
+      } else if(user.role === 'MANAGER') {
         this.store.dispatch(new GetSubordinatesRequests());
       } else {
-        this.getMyLeaveRequests();
+        this.store.dispatch(new GetMyLeaveRequests());
       }
+    }
+      );
+
     }
     this.showRequests = !this.showRequests;
   }
@@ -97,25 +124,24 @@ export class MainMenuComponent {
     return date.toISOString().split('T')[0];
   }
 
-  submitNewRequest() {
-    const currentUserId = this.userService.getUser();
-    const requestData = {
+
+  async submitNewRequest() {
+    const user = await firstValueFrom(this.currentUser$);
+
+    const newreq = {
+
       leaveTypeName: this.newLeaveRequest.leaveTypeName,
       startDate: this.newLeaveRequest.startDate,
       endDate: this.newLeaveRequest.endDate,
       notes: this.newLeaveRequest.notes,
-      status: 'PENDING',
-      userId: currentUserId
+      userId: user.id
     };
-    this.http.post('/api/leaverequests', requestData).subscribe({
-      next: () => {
-        alert('The request was sent successfully!');
-        this.getMyLeaveRequests();
-        this.resetForm();
-      },
-      error: () => alert('Error while sending the request')
-    });
+
+    this.store.dispatch(new SubmitLeaveRequest(newreq));
+    this.resetForm();
+
   }
+
 
   selectRequestForEdit(request: any) {
     this.store.dispatch(new SetSelectedRequest({ ...request }));
@@ -135,7 +161,7 @@ export class MainMenuComponent {
     this.http.put(`/api/leaverequests/${selected.id}`, selected).subscribe({
       next: () => {
         alert('Request updated successfully!');
-        this.getMyLeaveRequests();
+        this.store.dispatch(new GetMyLeaveRequests());
         this.store.dispatch(new SetSelectedRequest(null));
       },
       error: () => alert('Error while updating the request')
@@ -151,42 +177,32 @@ export class MainMenuComponent {
       this.http.delete(`/api/leaverequests/${requestId}/delete`).subscribe({
         next: () => {
           alert('Request deleted successfully!');
-          this.getMyLeaveRequests();
+          this.store.dispatch(new GetMyLeaveRequests());
         },
         error: () => alert('Error while deleting the request')
       });
     }
   }
 
+
   resetForm() {
     this.newLeaveRequest = { leaveTypeName: '', startDate: '', endDate: '', notes: '', status: 'PENDING' };
   }
 
-  approveLeaveRequest(requestId: number) {
-    const currentId = this.userService.getUser();
-    this.http.put(`/api/leaverequests/${requestId}/approve?givenId=${currentId}`, {}).subscribe({
-      next: () => {
-        alert('Request approved successfully!');
-        this.store.dispatch(new GetAllRequests());
-      },
-      error: () => alert('Error while approving the request')
-    });
-  }
 
-  rejectLeaveRequest(requestId: number) {
-    const currentId = this.userService.getUser();
-    this.http.put(`/api/leaverequests/${requestId}/reject?givenId=${currentId}`, {}).subscribe({
-      next: () => {
-        alert('Request rejected successfully!');
-        this.store.dispatch(new GetAllRequests());
-      },
-      error: () => alert('Error while rejecting the request')
-    });
+  async approveLeaveRequest(requestId: number) {
+  const user = await firstValueFrom(this.currentUser$);
+  this.store.dispatch(new ApproveLeaveRequest(requestId, user.id));
+}
+
+  async rejectLeaveRequest(requestId: number) {
+    const user = await firstValueFrom(this.currentUser$);
+    this.store.dispatch(new RejectLeaveRequest(requestId, user.id));
   }
 
   toggleShowUsers() {
     if (!this.showUsers) {
-      this.loadUsers();
+      this.store.dispatch(new LoadUsers());
     }
     this.showUsers = !this.showUsers;
   }
@@ -195,26 +211,13 @@ export class MainMenuComponent {
     this.showUserForm = !this.showUserForm;
   }
 
-  loadUsers() {
-    this.http.get<any[]>('/api/users').subscribe(data => {
-      this.users = data;
-      this.users.forEach(user => {
-        if(user.isActive === true){
-          this.userService.getAllLeaveTypesForUser(user.id).subscribe(leaveTypes => {
-            user.vacationBalance = leaveTypes["Vacation"] ?? 0;
-            user.sickBalance = leaveTypes["Sick Leave"] ?? 0;
-            user.unpaidBalance = leaveTypes["Unpaid"] ?? 0;
-          });
-        }
-      });
-    });
-  }
 
   createUser() {
     this.http.post('/api/users/createUser', this.newUser).subscribe(() => {
       alert('User created successfully!');
       this.newUser = { name: '', email: '', role: '' };
-      this.loadUsers();
+
+      this.store.dispatch(new LoadUsers());
     });
   }
 
@@ -223,16 +226,18 @@ export class MainMenuComponent {
       this.http.delete(`/api/users/deleteUser?id=${userId}`, { responseType: 'text' })
         .subscribe(() => {
           alert('User deleted successfully!');
-          this.loadUsers();
+
+          this.store.dispatch(new LoadUsers());
         });
     }
   }
 
-  updateBalances(userId: number, vacation: number, sickLeave:number, unpaid: number) {
-    this.http.put(`/api/leavetypes/user/${userId}/vacation/balance?newBalance=${vacation}`, {}).subscribe();
-    this.http.put(`/api/leavetypes/user/${userId}/sick_leave/balance?newBalance=${sickLeave}`, {}).subscribe();
-    this.http.put(`/api/leavetypes/user/${userId}/unpaid/balance?newBalance=${unpaid}`, {}).subscribe();
-    alert('Balances updated successfully!');
-    this.loadUsers();
-  }
+  updateBalances(userId: number, vacation: number, sickLeave: number, unpaid: number) {
+  this.store.dispatch(new UpdateUserBalances(userId, vacation, sickLeave, unpaid));
 }
+
+
+
+
+}
+

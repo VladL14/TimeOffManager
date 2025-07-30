@@ -187,7 +187,7 @@
     <div *ngIf="showUsers" class="section" id="viewusers">
       <h2>Users</h2>
       <ul>
-        <li *ngFor="let user of users">
+        <li *ngFor="let user of users$ | async">
           <p><strong>Name:</strong> {{ user.name }}</p>
           <p><strong>Role:</strong> {{ user.role }}</p>
           <p><strong>Status:</strong> {{ user.isActive ? 'Active' : 'Inactive' }}</p>
