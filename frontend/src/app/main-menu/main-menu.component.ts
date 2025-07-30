@@ -6,10 +6,8 @@ import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { Store } from '@ngxs/store';
 import { MainMenuState } from '../state/main-menu.state';
-
 import { firstValueFrom, map, Observable } from 'rxjs';
 import { ApproveLeaveRequest, GetAllLeaveTypes, GetAllRequests, GetMyLeaveRequests, GetSubordinatesRequests, LoadCurrentUser, LoadUsers, RejectLeaveRequest, SetAllRequests, SetLeaveRequests, SetSelectedRequest, SubmitLeaveRequest, UpdateUserBalances} from '../state/main-menu.actions';
-
 
 @Component({
   selector: 'app-main-menu',
@@ -18,7 +16,9 @@ import { ApproveLeaveRequest, GetAllLeaveTypes, GetAllRequests, GetMyLeaveReques
   templateUrl: './main-menu.component.html',
   styleUrl: './main-menu.component.scss'
 })
+
 export class MainMenuComponent {
+
   showDashboard = false;
   showForm = false;
   showRequests = false;
@@ -40,12 +40,11 @@ export class MainMenuComponent {
     public userService: UserService,
     private http: HttpClient,
     private store: Store
-  ) {
+  ) {  
     this.leaveRequests$ = this.store.select(MainMenuState.getLeaveRequests);
     this.selectedRequest$ = this.store.select(MainMenuState.getSelectedRequest);
     this.allRequests$ = this.store.select(MainMenuState.getAllRequests);
     this.leaveBalances$ = this.store.select(MainMenuState.getLeaveBalances);
-
     this.users$ = this.store.select(MainMenuState.getUsers);
     this.userError$ = this.store.select(MainMenuState.getUserError);
     this.currentUser$ = this.store.select(MainMenuState.getCurrentUser);
@@ -75,10 +74,7 @@ export class MainMenuComponent {
   this.showForm = false;
   this.showRequests = false;
   this.store.dispatch([ new SetLeaveRequests([]), new SetSelectedRequest(null) ]);
-
   }
-
-
 
   goToDashboard() {
     this.showDashboard = true;
@@ -90,7 +86,6 @@ export class MainMenuComponent {
 
   toggleShowRequests() {
     if (!this.showRequests) {
-
     this.store.dispatch(new LoadCurrentUser());
       this.currentUser$.subscribe(user => {
       if(user.role === 'ADMIN') {
@@ -102,7 +97,6 @@ export class MainMenuComponent {
       }
     }
       );
-
     }
     this.showRequests = !this.showRequests;
   }
@@ -124,12 +118,10 @@ export class MainMenuComponent {
     return date.toISOString().split('T')[0];
   }
 
-
   async submitNewRequest() {
     const user = await firstValueFrom(this.currentUser$);
 
     const newreq = {
-
       leaveTypeName: this.newLeaveRequest.leaveTypeName,
       startDate: this.newLeaveRequest.startDate,
       endDate: this.newLeaveRequest.endDate,
@@ -139,7 +131,6 @@ export class MainMenuComponent {
 
     this.store.dispatch(new SubmitLeaveRequest(newreq));
     this.resetForm();
-
   }
 
 
@@ -158,13 +149,16 @@ export class MainMenuComponent {
   updateLeaveRequest() {
     const selected = this.selectedRequestValue;
     if(!selected?.id) return;
+
     this.http.put(`/api/leaverequests/${selected.id}`, selected).subscribe({
       next: () => {
         alert('Request updated successfully!');
         this.store.dispatch(new GetMyLeaveRequests());
         this.store.dispatch(new SetSelectedRequest(null));
       },
-      error: () => alert('Error while updating the request')
+      error: () => {
+        alert('Error while updating the request');
+      }
     });
   }
 
@@ -179,16 +173,15 @@ export class MainMenuComponent {
           alert('Request deleted successfully!');
           this.store.dispatch(new GetMyLeaveRequests());
         },
-        error: () => alert('Error while deleting the request')
+        error: () => {
+          alert('Error while deleting the request');
+        }
       });
     }
   }
-
-
   resetForm() {
     this.newLeaveRequest = { leaveTypeName: '', startDate: '', endDate: '', notes: '', status: 'PENDING' };
   }
-
 
   async approveLeaveRequest(requestId: number) {
   const user = await firstValueFrom(this.currentUser$);
@@ -200,33 +193,28 @@ export class MainMenuComponent {
     this.store.dispatch(new RejectLeaveRequest(requestId, user.id));
   }
 
+
   toggleShowUsers() {
     if (!this.showUsers) {
       this.store.dispatch(new LoadUsers());
     }
     this.showUsers = !this.showUsers;
   }
-
   toggleShowUserForm() {
     this.showUserForm = !this.showUserForm;
   }
-
-
   createUser() {
     this.http.post('/api/users/createUser', this.newUser).subscribe(() => {
       alert('User created successfully!');
       this.newUser = { name: '', email: '', role: '' };
-
       this.store.dispatch(new LoadUsers());
     });
   }
-
   deleteUser(userId: number) {
     if (confirm('Are you sure you want to delete this user?')) {
       this.http.delete(`/api/users/deleteUser?id=${userId}`, { responseType: 'text' })
         .subscribe(() => {
           alert('User deleted successfully!');
-
           this.store.dispatch(new LoadUsers());
         });
     }
@@ -240,4 +228,3 @@ export class MainMenuComponent {
 
 
 }
-
