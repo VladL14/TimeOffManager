@@ -2,120 +2,130 @@ import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testin
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
 import { of } from 'rxjs';
 import { NgxsModule, Store } from '@ngxs/store';
-import { Injectable } from '@angular/core';
 
 import { MainMenuComponent } from './main-menu.component';
 import { UserService } from '../user.service';
 import { MainMenuState } from '../state/main-menu.state';
-import { SetAllRequests, SetLeaveRequests, SetSelectedRequest, SetVacation, SetSickLeave, SetUnpaidLeave } from '../state/main-menu.actions';
+import { GetAllLeaveTypes, GetMyLeaveRequests, GetAllRequests, GetSubordinatesRequests } from '../state/main-menu.actions';
 
 describe('MainMenuComponent', () => {
   let component: MainMenuComponent;
   let fixture: ComponentFixture<MainMenuComponent>;
-  let compiled: HTMLElement;
-  let mockUserService: any;
-  let httpMock: HttpTestingController;
   let store: Store;
+  let httpMock: HttpTestingController;
+  let mockUserService: any;
 
-  function setupTestBed(role: 'USER' | 'MANAGER' | 'ADMIN') {
+  const setupTestBed = (role: 'USER' | 'ADMIN' | 'MANAGER') => {
     mockUserService = {
       loadUser: () => of(null),
-      getVacationBalance: (id: number) => of(15),
-      getSickBalance: (id: number) => of(10),
-      getUnpaidBalance: (id: number) => of(5),
+      getUser: () => 123,
+      getName: () => 'Test User',
       getRole: () => role,
-      getName: () => `Test ${role}`,
-      getUser: () => (role === 'USER' ? 123 : role === 'MANAGER' ? 456 : 789),
-      getUserById: (id: number) => of({ id: id, name: `User ${id}` })
+      getAllLeaveTypesForUser: () => of({ 'Vacation': 21, 'Sick Leave': 10 }),
+      getUserById: (id: number) => of({ id: id, name: 'Some User' })
     };
 
     TestBed.configureTestingModule({
-      imports: [MainMenuComponent, HttpClientTestingModule, NgxsModule.forRoot([MainMenuState])],
-      providers: [{ provide: UserService, useValue: mockUserService }]
+      imports: [
+        MainMenuComponent,
+        HttpClientTestingModule,
+        NgxsModule.forRoot([MainMenuState])
+      ],
+      providers: [
+        { provide: UserService, useValue: mockUserService }
+      ]
     });
 
     fixture = TestBed.createComponent(MainMenuComponent);
     component = fixture.componentInstance;
-    compiled = fixture.nativeElement;
-    httpMock = TestBed.inject(HttpTestingController);
     store = TestBed.inject(Store);
-  }
+    httpMock = TestBed.inject(HttpTestingController);
+  };
 
   afterEach(() => {
     httpMock.verify();
   });
 
-  it('should toggle showForm', () => {
-    setupTestBed('USER');
-    component.showForm = false;
-    component.toggleShowForm();
-    expect(component.showForm).toBeTrue();
-  });
+  describe('with USER role', () => {
+    beforeEach(() => setupTestBed('USER'));
 
-  it('should dispatch SetSelectedRequest on selectRequestForEdit', () => {
-    setupTestBed('USER');
-    const dispatchSpy = spyOn(store, 'dispatch');
-    const mockRequest = { id: 1, leaveTypeName: 'Vacation' };
-    component.selectRequestForEdit(mockRequest);
-
-    expect(dispatchSpy).toHaveBeenCalledWith(jasmine.objectContaining({
-      request: jasmine.objectContaining({ id: 1 })
+    it('should create and dispatch GetAllLeaveTypes on init', fakeAsync(() => {
+      spyOn(store, 'dispatch').and.callThrough();
+      fixture.detectChanges();
+      tick();
+      expect(component).toBeTruthy();
+      expect(store.dispatch).toHaveBeenCalledWith(new GetAllLeaveTypes(123));
     }));
+
+    it('should dispatch GetMyLeaveRequests when toggleShowRequests is called', () => {
+      spyOn(store, 'dispatch').and.callThrough();
+      component.showRequests = false;
+
+      component.toggleShowRequests();
+
+      expect(store.dispatch).toHaveBeenCalledWith(new GetMyLeaveRequests());
+
+      const req = httpMock.expectOne('/api/leaverequests/user/123');
+      req.flush([]);
+    });
   });
 
-  it('should dispatch CancelEdit on cancelEdit', () => {
-    setupTestBed('USER');
-    const dispatchSpy = spyOn(store, 'dispatch');
-    component.cancelEdit();
-    expect(dispatchSpy).toHaveBeenCalledWith(new SetSelectedRequest(null));
-  });
+  describe('with ADMIN role', () => {
+    beforeEach(() => setupTestBed('ADMIN'));
 
-  it('should dispatch actions after ngOnInit completes', fakeAsync(() => {
-    setupTestBed('USER');
-    const dispatchSpy = spyOn(store, 'dispatch');
+    it('should dispatch GetAllRequests on init', fakeAsync(() => {
+      spyOn(store, 'dispatch').and.callThrough();
 
-    fixture.detectChanges();
-    tick();
-    tick();
-    tick();
-    tick();
+      fixture.detectChanges();
+      tick();
 
-    expect(dispatchSpy).toHaveBeenCalledWith(new SetVacation(15));
-    expect(dispatchSpy).toHaveBeenCalledWith(new SetSickLeave(10));
-    expect(dispatchSpy).toHaveBeenCalledWith(new SetUnpaidLeave(5));
-  }));
+      expect(store.dispatch).toHaveBeenCalledWith(new GetAllRequests());
 
-  it('should send a POST request on submitNewRequest', fakeAsync(() => {
-    setupTestBed('USER');
-    spyOn(window, 'alert');
-    spyOn(component, 'resetForm');
-    spyOn(component, 'getMyLeaveRequests').and.callFake(() => {});
+      const req = httpMock.expectOne('/api/leaverequests');
+      expect(req.request.method).toBe('GET');
+      req.flush([]);
+    }));
 
-    component.newLeaveRequest = { leaveTypeName: 'Vacation', startDate: '2025-11-01', endDate: '2025-11-05', notes: 'Test', status: 'PENDING' };
-    component.submitNewRequest();
+    it('should dispatch GetAllRequests when toggleShowRequests is called', () => {
+      spyOn(store, 'dispatch').and.callThrough();
+      component.showRequests = false;
 
-    const reqPost = httpMock.expectOne('/api/leaverequests');
-    reqPost.flush({});
-    tick();
+      component.toggleShowRequests();
 
-    expect(window.alert).toHaveBeenCalledWith('The request was sent successfully!');
-    expect(component.getMyLeaveRequests).toHaveBeenCalled();
-  }));
+      expect(store.dispatch).toHaveBeenCalledWith(new GetAllRequests());
 
-  it('should display requests from the store', () => {
-    setupTestBed('USER');
-    store.reset({
-      mainMenu: {
-        leaveRequests: [{ id: 1, leaveTypeName: 'Vacation', startDate: '2025-08-01', endDate: '2025-08-05' }]
-      }
+      const req = httpMock.expectOne('/api/leaverequests');
+      req.flush([]);
     });
 
-    component.showDashboard = true;
-    component.showRequests = true;
-    fixture.detectChanges();
+    it('should dispatch GetAllRequests after approving a request', () => {
+      spyOn(store, 'dispatch').and.callThrough();
 
-    const requestElements = compiled.querySelectorAll('#viewrequestuser ul li');
-    expect(requestElements.length).toBe(1);
-    expect(requestElements[0].textContent).toContain('Vacation');
+      component.approveLeaveRequest(1);
+
+      const approveReq = httpMock.expectOne('/api/leaverequests/1/approve?givenId=123');
+      approveReq.flush({});
+
+      const refreshReq = httpMock.expectOne('/api/leaverequests');
+      refreshReq.flush([]);
+
+      expect(store.dispatch).toHaveBeenCalledWith(new GetAllRequests());
+    });
+  });
+
+  describe('with MANAGER role', () => {
+    beforeEach(() => setupTestBed('MANAGER'));
+
+    it('should dispatch GetSubordinatesRequests when toggleShowRequests is called', () => {
+      spyOn(store, 'dispatch').and.callThrough();
+      component.showRequests = false;
+
+      component.toggleShowRequests();
+
+      expect(store.dispatch).toHaveBeenCalledWith(new GetSubordinatesRequests());
+
+      const req = httpMock.expectOne('/api/leaverequests/viewSubordinatesLeaveRequests/123');
+      req.flush([]);
+    });
   });
 });

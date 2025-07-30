@@ -17,3 +17,15 @@ export class GetAllLeaveTypes {
   static readonly type = '[MainMenu] GetAllLeaveTypes';
   constructor(public userId: number) {}
 }
+
+export class GetMyLeaveRequests {
+  static readonly type = '[MainMenu] Get My Leave Requests';
+}
+
+export class GetAllRequests {
+  static readonly type = '[MainMenu] Get All Requests';
+}
+
+export class GetSubordinatesRequests {
+  static readonly type = '[MainMenu] Get Subordinates Requests';
+}
